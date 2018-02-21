@@ -1,0 +1,11 @@
+/**
+ * Device Class Identification:
+ * 
+ * Class Name   :	ActuatorSystem
+ * Contact      :	falilou.thiam@synchrotron-soleil.fr
+ * Class Family :	Motion
+ * Platform     :	Unix Like
+ * Bus          :	Not Applicable
+ * Manufacturer :	none
+ * Reference    :	
+ */

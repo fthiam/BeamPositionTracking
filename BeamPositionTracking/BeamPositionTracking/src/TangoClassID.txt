@@ -1,0 +1,11 @@
+/**
+ * Device Class Identification:
+ * 
+ * Class Name   :	BeamPositionTracking
+ * Contact      :	falilou.thiam@synchrotron-soleil.fr
+ * Class Family :	Process
+ * Platform     :	Unix Like
+ * Bus          :	Not Applicable
+ * Manufacturer :	none
+ * Reference    :	
+ */
