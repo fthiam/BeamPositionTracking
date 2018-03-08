@@ -585,6 +585,11 @@ void ASTaskManager::refreshTaskState(){
 		m_managerDataPacket.taskStateStatus.state = Tango::STANDBY;
 		m_managerDataPacket.taskStateStatus.status = "At least one axis is not initialize yet, system is not ready to operate !";
 	}
+	//Recently added -> To test !
+	if((m_managerDataPacket.xStateStatus.state == Tango::ALARM) || (m_managerDataPacket.yStateStatus.state == Tango::ALARM)){
+		m_managerDataPacket.taskStateStatus.state = Tango::STANDBY;
+		m_managerDataPacket.taskStateStatus.status = "At least one axis is in ALARM state, can't operate !";
+	}
 	if((m_managerDataPacket.xStateStatus.state == Tango::MOVING) || (m_managerDataPacket.yStateStatus.state == Tango::MOVING)){
 		m_managerDataPacket.taskStateStatus.state = Tango::MOVING;
 		m_managerDataPacket.taskStateStatus.status = "At least one axis is moving";
