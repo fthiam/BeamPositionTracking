@@ -13,8 +13,8 @@ EXPORT_SINGLECLASS_PLUGIN(LimaPlugin::LimaPlugin, LimaPlugin::LimaPluginInfo);
 namespace LimaPlugin
 {
 std::string LIMA_DEVICE_ADRESS_STR = "LimaDeviceUrl";
-std::string PERCENTAGE_DETECTION = "PercentageDetection";
-
+std::string FIX_PERCENTAGE_DETECTION_STR = "FixPercentageDetection";
+const static string percentageDetectionStr = "percentageDetection";
 // ============================================================================
 // LimaPlugin::LimaPlugin
 // ============================================================================
@@ -23,7 +23,7 @@ LimaPlugin::LimaPlugin()
 {
 	//Init members
 	m_limaDeviceAdressStr = "LimaDeviceUrl";
-	m_percentageDetectionStr = "PercentageDetection";
+	m_thresholdStr = "FixPercentageDetection";
 	m_sensorState.operational = false;
 	m_sensorState.errorStatus = "Not initialized";
 	m_calculationProcess = 0;
@@ -33,8 +33,10 @@ LimaPlugin::LimaPlugin()
 	m_yCentroid = yat::ieee_nan();
 	m_isBeamDetected = false;
 	m_isBeamInZone = false;
-	m_deviceAdress = "";
+	m_deviceCCDAdress = "";
 	m_deviceCCD = NULL;
+	m_percentageDetection = 1;
+	m_fixMode = true;
 }
 
 // ============================================================================
@@ -60,7 +62,7 @@ throw (Tango::DevFailed)
 	// fill propInfoList with name & type of plugin's needed properties
 	try{
 		propInfoList[m_limaDeviceAdressStr] = (int)yat::PlugInPropType::STRING;	
-		propInfoList[m_percentageDetectionStr] =  (int)yat::PlugInPropType::DOUBLE;	
+		propInfoList[m_thresholdStr] = (int)yat::PlugInPropType::DOUBLE;	
 	}
 	catch (...){
 	  	/*m_sensorState.operational = false;
@@ -88,7 +90,7 @@ throw (Tango::DevFailed)
 	yat4tango::PlugInPropertyValueList::iterator propIt;
 
 	bool proxyUrl = false;
-	bool percentageDetection = false;
+	bool fixPercentageDetection = false;
 
 	for (propIt = propValueList.begin(); propIt != propValueList.end(); ++propIt){
 
@@ -97,7 +99,7 @@ throw (Tango::DevFailed)
 			// get value
 			if ((*propIt).valid){
 				proxyUrl = true;
-				m_deviceAdress = yat::any_cast_ext<std::string>((*propIt).value);
+				m_deviceCCDAdress = yat::any_cast_ext<std::string>((*propIt).value);
 			}
 		  }
 		  catch (...){
@@ -105,38 +107,60 @@ throw (Tango::DevFailed)
 			m_sensorState.operational = false;
 			updateStatus("Looks like LimaDeviceUrl property is not in the right format");
 		  }
-	    }
-		
-		if ((*propIt).name == PERCENTAGE_DETECTION){
+	    }	
+
+ 		if ((*propIt).name == FIX_PERCENTAGE_DETECTION_STR){
 		  try{
 			// get value
 			if ((*propIt).valid){
-			  percentageDetection = true;
-			  m_percentageDetection = yat::any_cast_ext<double>((*propIt).value);
+				fixPercentageDetection = true;
+				m_percentageDetection = yat::any_cast<double>((*propIt).value);
 			}
 		  }
 		  catch (...){
 		  	m_propertyMissing = true;
-		  	m_sensorState.operational = false;
-		  	updateStatus("Looks like percentageDetection property is not in the right format");
+			m_sensorState.operational = false;
+			updateStatus("Looks like percentageDetection property is not in the right format");
 		  }
-	    }
-		
+	    }			
 	}
-
-    if (!percentageDetection){
-      	// mandatory property
-		m_propertyMissing = true;
-		m_sensorState.operational = false;
-		updateStatus("Lima plugin doesn't find property percentageDetection...");
-		
-    }
     if (!proxyUrl){
 		// mandatory property
 		m_propertyMissing = true;
 		m_sensorState.operational = false;
 		updateStatus("Lima plugin doesn't find property LimaDeviceUrl (need a proxy on lima device)");
     }
+    if (!fixPercentageDetection){
+		// mandatory property
+		m_propertyMissing = true;
+		m_sensorState.operational = false;
+		updateStatus("Lima plugin doesn't find property fixPercentageDetection");
+    }
+}
+// ============================================================================
+// LimaPlugin::percentageDetection_attribute_present
+// ============================================================================
+void LimaPlugin::percentageDetection_attribute_present()
+{
+  try
+  {
+   	this->m_deviceCCD->read_attribute ("percentageDetection");
+    this->m_percentageDetectionPresent = true;
+  }
+  //An exception means that externalRefEnabled doesn't exists...
+  //No need to create attribute ExternalRefEnabled in plugin
+  catch (Tango::ConnectionFailed ConF)
+  {
+    this->m_percentageDetectionPresent = false;
+  }  
+  catch (Tango::CommunicationFailed  ComF)
+  {
+    this->m_percentageDetectionPresent = false;
+  }  
+  catch (...)
+  {
+    this->m_percentageDetectionPresent = false;
+  }  
 }
 // ============================================================================
 // LimaPlugin::enumerate_attributes
@@ -144,7 +168,61 @@ throw (Tango::DevFailed)
 void LimaPlugin::enumerate_attributes (yat4tango::DynamicAttributeDescriptionList& attrDescList) const
 throw (Tango::DevFailed)
 {
+	//- attribute definition:
+	yat4tango::DynamicAttributeInfo dai;
+	// dai.dev = this;
 
+	dai.tai.name = percentageDetectionStr;
+	dai.tai.label = percentageDetectionStr; 
+	dai.tai.data_format = Tango::SCALAR;
+	dai.tai.data_type = Tango::DEV_DOUBLE;
+	dai.tai.disp_level = Tango::OPERATOR;
+	dai.tai.writable = Tango::READ_WRITE;
+	dai.tai.description = "Image threshold lvl";
+
+	//- attribute properties:
+	dai.tai.unit = " ";
+	dai.tai.standard_unit = " ";
+	dai.tai.display_unit = " ";
+	dai.tai.format = "%6.2f";
+
+	dai.cdb = true;
+
+	//- read callback
+	dai.rcb = yat4tango::DynamicAttributeReadCallback::instanciate(const_cast<LimaPlugin&>(*this), 
+	                                                          &LimaPlugin::read_callback_percentageDetection);
+
+	dai.wcb = yat4tango::DynamicAttributeWriteCallback::instanciate(const_cast<LimaPlugin&>(*this),
+	                                                            &LimaPlugin::write_callback_percentageDetection);
+
+	//- add attribute description in list
+	attrDescList.push_back(dai);
+}
+// ============================================================================
+// LimaPlugin::write_callback_externalThreshold
+// ============================================================================
+void LimaPlugin::write_callback_percentageDetection(yat4tango::DynamicAttributeWriteCallbackData& cbd)
+{
+	if(!m_fixMode){
+	    cbd.tga->get_write_value(m_percentageDetection);
+	    Tango::DeviceAttribute* attr;
+	    setPercentageDetection(m_percentageDetection);
+	}else{
+		THROW_DEVFAILED(
+        _CPTC("PLUGIN_ERROR"), 
+        _CPTC("Cannot write percentage detection in fix mode \nSet value on property : FixPercentageDetection"),
+        _CPTC("LimaPlugin::write_callback_percentageDetection()")); 
+	}
+}
+// ============================================================================
+// LimaPlugin::read_callback_percentageDetection
+// ============================================================================
+void LimaPlugin::read_callback_percentageDetection(yat4tango::DynamicAttributeReadCallbackData& cbd)
+{
+	if (this->m_percentageDetectionPresent)
+		cbd.tga->set_value(&m_percentageDetection);
+	else
+		cbd.tga->set_quality(Tango::AttrQuality::ATTR_INVALID, true);
 }
 // ============================================================================
 // LimaPlugin::getSensorData
@@ -170,6 +248,11 @@ BPT::SensorInterface::SensorInterface::sensorData LimaPlugin::getSensorData()
 					m_sensorState.operational = true;
 				}	
 				else{
+					//Only use image ...
+					dataToReturn.imgHigh = results.m_imgHigh;
+					dataToReturn.imgWidth = results.m_imgWidth;
+					dataToReturn.tresholdedImg.clear();
+					dataToReturn.tresholdedImg = results.tresholdedImg;
 					dataToReturn.xBeamPostionPixels = 0;
 					dataToReturn.yBeamPostionPixels = 0;
 					dataToReturn.isBeamDetected = false;
@@ -177,7 +260,7 @@ BPT::SensorInterface::SensorInterface::sensorData LimaPlugin::getSensorData()
 			}else{
 				m_sensorState.operational = false;
 				m_sensorState.errorStatus = "Processing error, not able to get new image !\
-							 Check Lima Device ! : " + m_deviceAdress;
+							 Check Lima Device ! : " + m_deviceCCDAdress;
 			}
 		}catch(Tango::DevFailed &df){
 			m_sensorState.operational = false;
@@ -207,9 +290,10 @@ BPT::SensorInterface::SensorInterface::sensorState LimaPlugin::getSensorState()
 // ============================================================================
 // LimaPlugin::start
 // ============================================================================
-void LimaPlugin::start(Tango::DeviceImpl * host_device)
+void LimaPlugin::start(Tango::DeviceImpl * host_device, bool fixMode)
   throw (Tango::DevFailed)
 {
+	m_fixMode = fixMode;
 	try{
 		if(!m_propertyMissing){
 			initialize_connection();
@@ -217,6 +301,10 @@ void LimaPlugin::start(Tango::DeviceImpl * host_device)
 			if (m_proxyCCDInit){
 				m_calculationProcess = new CalculationProcess::CalculationProcess ( m_deviceCCD, m_percentageDetection);
 				if(m_calculationProcess->checkDetectorPixelDepth()){
+					//If fix mode -> set threshold once and for all
+					std::cout<<"start, with m_percentageDetection = "<<m_percentageDetection<<std::endl;
+					//Init percentage detection with property value 
+					setPercentageDetection(m_percentageDetection);
 					m_sensorState.operational = true;
 					m_sensorState.errorStatus = "Idle ready to start processing";
 				}else{
@@ -240,17 +328,44 @@ void LimaPlugin::start(Tango::DeviceImpl * host_device)
 void LimaPlugin::initialize_connection ()
 {
 	try{
-		m_deviceCCD = new Tango::DeviceProxy (m_deviceAdress);
+		//Init CCD device proxy
+		m_deviceCCD = new Tango::DeviceProxy (m_deviceCCDAdress);
+
 		Tango::DeviceData test  = m_deviceCCD->command_inout("Status");
+		percentageDetection_attribute_present();
 		std::string statusOut;
 		test>>statusOut;
+
 		m_proxyCCDInit = true;
 	}
 	catch (...){
 		m_deviceCCD = NULL;
 		m_proxyCCDInit = false;
 		m_sensorState.operational = false;
-		m_sensorState.errorStatus = "Lima plugin couldn't instanciate deviceCCD's proxy, check adress :\n" + m_deviceAdress;
+		m_sensorState.errorStatus = "Lima plugin couldn't instanciate deviceCCD's proxy, check adress :\n" + m_deviceCCDAdress;
+	}
+}
+// ============================================================================
+// LimaPlugin::setPercentageDetection
+// ============================================================================
+void LimaPlugin::setPercentageDetection(double percentageDetection){
+	m_percentageDetection = percentageDetection;
+	double localPercentageDetection =  m_percentageDetection/100;
+
+ 	if(localPercentageDetection > 1)
+ 		localPercentageDetection = 1;
+ 	if(localPercentageDetection < 0)
+ 		localPercentageDetection = 0;
+
+    if((localPercentageDetection <= 1) && (localPercentageDetection >= 0)) {
+	    //Attribute to write in device if present...
+	    if(m_calculationProcess)
+	       this->m_calculationProcess->updatePercentageDetection(localPercentageDetection);	
+	}else{
+		  THROW_DEVFAILED(
+        _CPTC("PLUGIN_ERROR"), 
+        _CPTC("Invalid value for percentage detection, \nmust be between 0 - 100 !"),
+        _CPTC("LimaPlugin::write_callback_percentageDetection()")); 
 	}
 }
 }//namespace LimaPlugin

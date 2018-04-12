@@ -57,6 +57,46 @@ public:
 	{return (static_cast<BeamPositionTracking *>(dev))->is_thresholdedImage_allowed(ty);}
 };
 
+class fixModeAttrib: public Tango::Attr
+{
+public:
+	fixModeAttrib():Attr("fixMode", Tango::DEV_BOOLEAN, Tango::READ) {};
+	~fixModeAttrib() {};
+	
+	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
+	{(static_cast<BeamPositionTracking *>(dev))->read_fixMode(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+	{return (static_cast<BeamPositionTracking *>(dev))->is_fixMode_allowed(ty);}
+};
+
+class yAxisRegulationThresholdAttrib: public Tango::Attr
+{
+public:
+	yAxisRegulationThresholdAttrib():Attr("yAxisRegulationThreshold", Tango::DEV_USHORT, Tango::READ_WRITE) {};
+	~yAxisRegulationThresholdAttrib() {};
+	
+	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
+	{(static_cast<BeamPositionTracking *>(dev))->read_yAxisRegulationThreshold(att);}
+	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
+	{(static_cast<BeamPositionTracking *>(dev))->write_yAxisRegulationThreshold(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+	{return (static_cast<BeamPositionTracking *>(dev))->is_yAxisRegulationThreshold_allowed(ty);}
+};
+
+class xAxisRegulationThresholdAttrib: public Tango::Attr
+{
+public:
+	xAxisRegulationThresholdAttrib():Attr("xAxisRegulationThreshold", Tango::DEV_USHORT, Tango::READ_WRITE) {};
+	~xAxisRegulationThresholdAttrib() {};
+	
+	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
+	{(static_cast<BeamPositionTracking *>(dev))->read_xAxisRegulationThreshold(att);}
+	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
+	{(static_cast<BeamPositionTracking *>(dev))->write_xAxisRegulationThreshold(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+	{return (static_cast<BeamPositionTracking *>(dev))->is_xAxisRegulationThreshold_allowed(ty);}
+};
+
 class warningZoneRadiusAttrib: public Tango::Attr
 {
 public:

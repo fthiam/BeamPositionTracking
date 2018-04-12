@@ -56,6 +56,7 @@ namespace BPTTaskManager{
 		bool isAxisCalibrated;
 		double currentPosition;
 		Tango::DevState currentState;
+		ushort axisThreshold;
 	};
 
 	struct ManagerDataPacket{
@@ -68,6 +69,12 @@ namespace BPTTaskManager{
 	struct Target{
 		short xTargetPoint;
 		short yTargetPoint;
+	};
+
+	struct FixModeDefinition{
+		bool isFixModeEnabled;
+		WarningZone warningZone;
+		Target target;
 	};
 }
 #endif

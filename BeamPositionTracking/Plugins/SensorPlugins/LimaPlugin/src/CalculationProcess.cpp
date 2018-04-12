@@ -54,6 +54,10 @@ bool CalculationProcess::checkDetectorPixelDepth(){
 	return false;
 }
 
+void CalculationProcess::updatePercentageDetection(double newPercentageDetection){
+	_beamInfo.setBeamThresholdDetection(newPercentageDetection);
+}
+
 CalculationResults CalculationProcess::processBeam(){
 
 	calculBeam();
@@ -119,6 +123,26 @@ bool CalculationProcess::ensureCCDDeviceIsRunnning(){
 	}
 }
 
+
+
+std::string CalculationProcess::type2str(int type) {
+  std::string r;
+  uchar depth = type & CV_MAT_DEPTH_MASK;
+
+  switch ( depth ) {
+    case CV_8U:  r = "8U"; break;
+    case CV_8S:  r = "8S"; break;
+    case CV_16U: r = "16U"; break;
+    case CV_16S: r = "16S"; break;
+    case CV_32S: r = "32S"; break;
+    case CV_32F: r = "32F"; break;
+    case CV_64F: r = "64F"; break;
+    default:     r = "User"; break;
+  }
+
+  return r;
+}
+
 void CalculationProcess::calculBeam()
 {
 	cv::Mat* w_CCd_tmp;
@@ -134,22 +158,29 @@ void CalculationProcess::calculBeam()
 	// Conversion threshold in % of the (max-min) to treshold value
 	const short BINARY_TRUE_VALUE = 1;
 
-    //Image binarisation, before threshold
+	//Convert image to 8 bit so that opencv can process it
 	cv::Mat w_imgCcd8UTMP;
 	cv::Mat resultTmp_imgBin = cv::Mat(0,0,CV_8UC1);
-	w_CCd.convertTo(w_imgCcd8UTMP, CV_8UC1);
+    //Do we need to normalize image ? => avoid image saturation !
+    if (type2str(w_CCd.type()) != "8S" )
+    	w_CCd.convertTo(w_imgCcd8UTMP, CV_8U, 1.0/255, 0);
+    else
+    	w_CCd.convertTo(w_imgCcd8UTMP, CV_8U);
 
-    //We need to know the new image threshold (0 - 255 now..)
+    //Find min and max values to estimate threshold
 	double newMax, newMin;    
 	cv::minMaxLoc(w_imgCcd8UTMP, &newMin, &newMax);
 
 	//Estimate threshold
-	double w_threshold = (newMax - newMin) * _beamInfo.getBeamThresholdDetection() + newMin;
+	double w_threshold = (newMax - newMin) *_beamInfo.getBeamThresholdDetection(); //+ newMin;
+	
+	//Threshold image
 	cv::threshold( w_imgCcd8UTMP, resultTmp_imgBin, w_threshold, BINARY_TRUE_VALUE, cv::THRESH_BINARY );
 
     // Extract thresholded image into a vector
     w_result.m_imgHigh = resultTmp_imgBin.rows;
 	w_result.m_imgWidth = resultTmp_imgBin.cols;
+
 	w_result.tresholdedImg.clear();
 	for (int i = 0; i < w_result.m_imgHigh; i++){
 		for (int j = 0; j < w_result.m_imgWidth; j++){

@@ -113,9 +113,9 @@ void BeamPositionTracking::delete_device()
 		delete m_dynAttrManager;
 
 	//- remove the DeviceInfo
-    yat4tango::DeviceInfo::release(this);
+   // yat4tango::DeviceInfo::release(this);
     //- remove the InnerAppender
-    yat4tango::InnerAppender::release(this);
+   // yat4tango::InnerAppender::release(this);
 }
 
 //+----------------------------------------------------------------------------
@@ -138,11 +138,6 @@ void BeamPositionTracking::init_device()
 	m_computedTime = 0;
 	m_taskManager = 0;
 	m_dynAttrManager = 0;
-	m_target.xTargetPoint = 0;
-	m_target.yTargetPoint = 0;
-	m_warningZone.xCenter = 0;
-	m_warningZone.yCenter = 0;
-	m_warningZone.radius = 0;
 	m_xBeamPositionInPixels = 0;
 	m_yBeamPositionInPixels = 0;
 	
@@ -150,11 +145,11 @@ void BeamPositionTracking::init_device()
 	BPTTaskManager::PIDCoefficient yAxisPID;
 
 	INFO_STREAM << "Create the InnerAppender in order to manage logs." << endl;
-    yat4tango::InnerAppender::initialize(this, 512);
+   	// yat4tango::InnerAppender::initialize(this, 512);
 
 	INFO_STREAM << "Create the DeviceInfo in order to manage info on versions." << endl;
-    yat4tango::DeviceInfo::initialize( this, YAT_XSTR(PROJECT_NAME), YAT_XSTR(PROJECT_VERSION));
-    yat4tango::DeviceInfo::add_dependency(this, "BeamPositionTracking ", YAT_XSTR(beamPositionPointing_PROJECT_VERSION));
+   	// yat4tango::DeviceInfo::initialize( this, YAT_XSTR(PROJECT_NAME), YAT_XSTR(PROJECT_VERSION));
+    // yat4tango::DeviceInfo::add_dependency(this, "BeamPositionTracking ", YAT_XSTR(beamPositionPointing_PROJECT_VERSION));
 
 
 	bool simulated_mode = false;
@@ -174,6 +169,22 @@ void BeamPositionTracking::init_device()
         return;
 	}
 
+	//Construct fix mode instructions using properties
+	if (!initFixModeValues()){
+		std::string err_msg = "Initialization error [Check fix mode values or set fix mode to false]";
+        ERROR_STREAM << err_msg << std::endl;
+        set_status (err_msg);
+        set_state (Tango::FAULT);
+        return;
+	}else{
+		//init target and warning zone with fix definitions 
+		m_target.xTargetPoint = m_fixModeDef.target.xTargetPoint;
+		m_target.yTargetPoint = m_fixModeDef.target.yTargetPoint;
+		m_warningZone.xCenter = m_fixModeDef.warningZone.xCenter;
+		m_warningZone.yCenter = m_fixModeDef.warningZone.yCenter;
+		m_warningZone.radius = m_fixModeDef.warningZone.radius;
+	}
+	
 	// Creation of dynAttrManager
 	try{
 		if (!m_dynAttrManager)
@@ -200,7 +211,16 @@ void BeamPositionTracking::init_device()
 																	actuatorSystemDeviceAdress,
 																	xAxisPID, yAxisPID,
 																	calibrationStepNbXAxis, calibrationStepNbYAxis,
-																	nbImgToAlign, deviceTaskPeriod, simulated_mode);
+																	nbImgToAlign, deviceTaskPeriod, simulated_mode, m_fixModeDef);
+
+
+		//Init plug with attr in this thread.... since it's possible that the plugin has an attribute ???
+		if (!m_taskManager->sensorPluginInitialisation()){
+			set_status ("Initialization error [Tango Exception caught while instantiating BPTTaskManager]");
+	        set_state (Tango::FAULT);
+	        return;
+		}
+
 
 	}catch( Tango::DevFailed &df ){
         ERROR_STREAM << df << std::endl;
@@ -244,7 +264,6 @@ void BeamPositionTracking::init_device()
     }
 
     m_initDone = true;
-    
 }
 
 
@@ -265,8 +284,6 @@ void BeamPositionTracking::get_device_property()
 	Tango::DbData	dev_prop;
 	dev_prop.push_back(Tango::DbDatum("DeviceTaskPeriod"));
 	dev_prop.push_back(Tango::DbDatum("NbImgToAlign"));
-	dev_prop.push_back(Tango::DbDatum("XTolerance"));
-	dev_prop.push_back(Tango::DbDatum("YTolerance"));
 	dev_prop.push_back(Tango::DbDatum("SensorPluginType"));
 	dev_prop.push_back(Tango::DbDatum("ActuatorSystemDeviceAdress"));
 	dev_prop.push_back(Tango::DbDatum("PluginPath"));
@@ -275,6 +292,12 @@ void BeamPositionTracking::get_device_property()
 	dev_prop.push_back(Tango::DbDatum("XPIDDefinition"));
 	dev_prop.push_back(Tango::DbDatum("YPIDDefinition"));
 	dev_prop.push_back(Tango::DbDatum("DeviceMode"));
+	dev_prop.push_back(Tango::DbDatum("FixXTarget"));
+	dev_prop.push_back(Tango::DbDatum("FixYTarget"));
+	dev_prop.push_back(Tango::DbDatum("FixMode"));
+	dev_prop.push_back(Tango::DbDatum("FixXWarningZoneCenter"));
+	dev_prop.push_back(Tango::DbDatum("FixYWarningZoneCenter"));
+	dev_prop.push_back(Tango::DbDatum("FixWarningZoneRadius"));
 
 	//	Call database and extract values
 	//--------------------------------------------
@@ -306,28 +329,6 @@ void BeamPositionTracking::get_device_property()
 	}
 	//	And try to extract NbImgToAlign value from database
 	if (dev_prop[i].is_empty()==false)	dev_prop[i]  >>  nbImgToAlign;
-
-	//	Try to initialize XTolerance from class property
-	cl_prop = ds_class->get_class_property(dev_prop[++i].name);
-	if (cl_prop.is_empty()==false)	cl_prop  >>  xTolerance;
-	else {
-		//	Try to initialize XTolerance from default device value
-		def_prop = ds_class->get_default_device_property(dev_prop[i].name);
-		if (def_prop.is_empty()==false)	def_prop  >>  xTolerance;
-	}
-	//	And try to extract XTolerance value from database
-	if (dev_prop[i].is_empty()==false)	dev_prop[i]  >>  xTolerance;
-
-	//	Try to initialize YTolerance from class property
-	cl_prop = ds_class->get_class_property(dev_prop[++i].name);
-	if (cl_prop.is_empty()==false)	cl_prop  >>  yTolerance;
-	else {
-		//	Try to initialize YTolerance from default device value
-		def_prop = ds_class->get_default_device_property(dev_prop[i].name);
-		if (def_prop.is_empty()==false)	def_prop  >>  yTolerance;
-	}
-	//	And try to extract YTolerance value from database
-	if (dev_prop[i].is_empty()==false)	dev_prop[i]  >>  yTolerance;
 
 	//	Try to initialize SensorPluginType from class property
 	cl_prop = ds_class->get_class_property(dev_prop[++i].name);
@@ -417,6 +418,72 @@ void BeamPositionTracking::get_device_property()
 	//	And try to extract DeviceMode value from database
 	if (dev_prop[i].is_empty()==false)	dev_prop[i]  >>  deviceMode;
 
+	//	Try to initialize FixXTarget from class property
+	cl_prop = ds_class->get_class_property(dev_prop[++i].name);
+	if (cl_prop.is_empty()==false)	cl_prop  >>  fixXTarget;
+	else {
+		//	Try to initialize FixXTarget from default device value
+		def_prop = ds_class->get_default_device_property(dev_prop[i].name);
+		if (def_prop.is_empty()==false)	def_prop  >>  fixXTarget;
+	}
+	//	And try to extract FixXTarget value from database
+	if (dev_prop[i].is_empty()==false)	dev_prop[i]  >>  fixXTarget;
+
+	//	Try to initialize FixYTarget from class property
+	cl_prop = ds_class->get_class_property(dev_prop[++i].name);
+	if (cl_prop.is_empty()==false)	cl_prop  >>  fixYTarget;
+	else {
+		//	Try to initialize FixYTarget from default device value
+		def_prop = ds_class->get_default_device_property(dev_prop[i].name);
+		if (def_prop.is_empty()==false)	def_prop  >>  fixYTarget;
+	}
+	//	And try to extract FixYTarget value from database
+	if (dev_prop[i].is_empty()==false)	dev_prop[i]  >>  fixYTarget;
+
+	//	Try to initialize FixMode from class property
+	cl_prop = ds_class->get_class_property(dev_prop[++i].name);
+	if (cl_prop.is_empty()==false)	cl_prop  >>  fixMode;
+	else {
+		//	Try to initialize FixMode from default device value
+		def_prop = ds_class->get_default_device_property(dev_prop[i].name);
+		if (def_prop.is_empty()==false)	def_prop  >>  fixMode;
+	}
+	//	And try to extract FixMode value from database
+	if (dev_prop[i].is_empty()==false)	dev_prop[i]  >>  fixMode;
+
+	//	Try to initialize FixXWarningZoneCenter from class property
+	cl_prop = ds_class->get_class_property(dev_prop[++i].name);
+	if (cl_prop.is_empty()==false)	cl_prop  >>  fixXWarningZoneCenter;
+	else {
+		//	Try to initialize FixXWarningZoneCenter from default device value
+		def_prop = ds_class->get_default_device_property(dev_prop[i].name);
+		if (def_prop.is_empty()==false)	def_prop  >>  fixXWarningZoneCenter;
+	}
+	//	And try to extract FixXWarningZoneCenter value from database
+	if (dev_prop[i].is_empty()==false)	dev_prop[i]  >>  fixXWarningZoneCenter;
+
+	//	Try to initialize FixYWarningZoneCenter from class property
+	cl_prop = ds_class->get_class_property(dev_prop[++i].name);
+	if (cl_prop.is_empty()==false)	cl_prop  >>  fixYWarningZoneCenter;
+	else {
+		//	Try to initialize FixYWarningZoneCenter from default device value
+		def_prop = ds_class->get_default_device_property(dev_prop[i].name);
+		if (def_prop.is_empty()==false)	def_prop  >>  fixYWarningZoneCenter;
+	}
+	//	And try to extract FixYWarningZoneCenter value from database
+	if (dev_prop[i].is_empty()==false)	dev_prop[i]  >>  fixYWarningZoneCenter;
+
+	//	Try to initialize FixWarningZoneRadius from class property
+	cl_prop = ds_class->get_class_property(dev_prop[++i].name);
+	if (cl_prop.is_empty()==false)	cl_prop  >>  fixWarningZoneRadius;
+	else {
+		//	Try to initialize FixWarningZoneRadius from default device value
+		def_prop = ds_class->get_default_device_property(dev_prop[i].name);
+		if (def_prop.is_empty()==false)	def_prop  >>  fixWarningZoneRadius;
+	}
+	//	And try to extract FixWarningZoneRadius value from database
+	if (dev_prop[i].is_empty()==false)	dev_prop[i]  >>  fixWarningZoneRadius;
+
 
 
 	//	End of Automatic code generation
@@ -431,6 +498,13 @@ void BeamPositionTracking::get_device_property()
 	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "false::1::2::3", "XPIDDefinition");
 	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "false::1::2::3", "YPIDDefinition");
 	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "SIMULATED", "DeviceMode");
+
+	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "false", "FixMode");
+	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "512", "FixXTarget");
+	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "512", "FixYTarget");
+	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "512", "FixXWarningZoneCenter");
+	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "512", "FixYWarningZoneCenter");
+	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "1", "FixWarningZoneRadius");
 
 
 }
@@ -459,6 +533,9 @@ void BeamPositionTracking::always_executed_hook()
 			m_thresholdedImage.clear();
 			m_thresholdedImage = managerDataPacket.beamDiagnostic.tresholdedImg;
 
+			m_xAxisRegulationThreshold = managerDataPacket.xAxisData.axisThreshold;
+			m_yAxisRegulationThreshold = managerDataPacket.yAxisData.axisThreshold;
+
 			set_state(stateAndStatus.state);
 			set_status(stateAndStatus.status);
 		}
@@ -478,6 +555,84 @@ void BeamPositionTracking::read_attr_hardware(vector<long> &attr_list)
 }
 //+----------------------------------------------------------------------------
 //
+// method : 		BeamPositionTracking::read_fixMode
+// 
+// description : 	Extract real attribute values for fixMode acquisition result.
+//
+//-----------------------------------------------------------------------------
+void BeamPositionTracking::read_fixMode(Tango::Attribute &attr)
+{
+	DEBUG_STREAM << "BeamPositionTracking::read_fixMode(Tango::Attribute &attr) entering... "<< endl;
+	attr.set_value(&fixMode);
+}
+
+//+----------------------------------------------------------------------------
+//
+// method : 		BeamPositionTracking::read_xAxisRegulationThreshold
+// 
+// description : 	Extract real attribute values for xAxisRegulationThreshold acquisition result.
+//
+//-----------------------------------------------------------------------------
+void BeamPositionTracking::read_xAxisRegulationThreshold(Tango::Attribute &attr)
+{
+	DEBUG_STREAM << "BeamPositionTracking::read_xAxisRegulationThreshold(Tango::Attribute &attr) entering... "<< endl;
+	attr.set_value(&m_xAxisRegulationThreshold);
+}
+
+//+----------------------------------------------------------------------------
+//
+// method : 		BeamPositionTracking::write_xAxisRegulationThreshold
+// 
+// description : 	Write xAxisRegulationThreshold attribute values to hardware.
+//
+//-----------------------------------------------------------------------------
+void BeamPositionTracking::write_xAxisRegulationThreshold(Tango::WAttribute &attr)
+{
+	DEBUG_STREAM << "BeamPositionTracking::write_xAxisRegulationThreshold(Tango::WAttribute &attr) entering... "<< endl;
+	
+	ushort tmpXAxisThreshold;
+
+	attr.get_write_value(tmpXAxisThreshold);
+	if(m_initDone)
+		if(m_taskManager)
+			m_taskManager->i_setXAxisRegThreshold(tmpXAxisThreshold);
+
+}
+
+//+----------------------------------------------------------------------------
+//
+// method : 		BeamPositionTracking::read_yAxisRegulationThreshold
+// 
+// description : 	Extract real attribute values for yAxisRegulationThreshold acquisition result.
+//
+//-----------------------------------------------------------------------------
+void BeamPositionTracking::read_yAxisRegulationThreshold(Tango::Attribute &attr)
+{
+	DEBUG_STREAM << "BeamPositionTracking::read_yAxisRegulationThreshold(Tango::Attribute &attr) entering... "<< endl;
+	attr.set_value(&m_yAxisRegulationThreshold);
+}
+
+//+----------------------------------------------------------------------------
+//
+// method : 		BeamPositionTracking::write_yAxisRegulationThreshold
+// 
+// description : 	Write yAxisRegulationThreshold attribute values to hardware.
+//
+//-----------------------------------------------------------------------------
+void BeamPositionTracking::write_yAxisRegulationThreshold(Tango::WAttribute &attr)
+{
+	DEBUG_STREAM << "BeamPositionTracking::write_yAxisRegulationThreshold(Tango::WAttribute &attr) entering... "<< endl;
+	
+	ushort tmpYAxisThreshold;
+
+	attr.get_write_value(tmpYAxisThreshold);
+	if(m_initDone)
+		if(m_taskManager)
+			m_taskManager->i_setYAxisRegThreshold(tmpYAxisThreshold);
+}
+
+//+----------------------------------------------------------------------------
+//
 // method : 		BeamPositionTracking::read_thresholdedImage
 // 
 // description : 	Extract real attribute values for thresholdedImage acquisition result.
@@ -489,7 +644,7 @@ void BeamPositionTracking::read_thresholdedImage(Tango::Attribute &attr)
 	Tango::DevUChar* bufferAttr;
 
 	bufferAttr = &m_thresholdedImage[0];
-	attr.set_value(bufferAttr, m_imageHigh, m_imageWidth);
+	attr.set_value(bufferAttr, m_imageWidth, m_imageHigh);
 }
 
 //+----------------------------------------------------------------------------
@@ -515,7 +670,11 @@ void BeamPositionTracking::read_computedTime(Tango::Attribute &attr)
 void BeamPositionTracking::read_xAxisTarget(Tango::Attribute &attr)
 {
 	DEBUG_STREAM << "BeamPositionTracking::read_xAxisTarget(Tango::Attribute &attr) entering... "<< endl;
-	attr.set_value(&m_target.xTargetPoint);
+	
+	if (!fixMode)
+		attr.set_value(&m_target.xTargetPoint);
+	else
+		attr.set_value(&m_fixModeDef.target.xTargetPoint);
 }
 
 //+----------------------------------------------------------------------------
@@ -529,14 +688,21 @@ void BeamPositionTracking::write_xAxisTarget(Tango::WAttribute &attr)
 {
 	DEBUG_STREAM << "BeamPositionTracking::write_xAxisTarget(Tango::WAttribute &attr) entering... "<< endl;
 
-	Tango::DevShort xTarget;
-  	attr.get_write_value(xTarget);
-
-  	m_target.xTargetPoint = (short) xTarget;
-
   	if(m_initDone){
-		if (m_taskManager){
-			m_taskManager->i_setTrackingTarget(m_target);
+  		//Only if there is no fix mode
+		if (!fixMode){
+			Tango::DevShort xTarget;
+		  	attr.get_write_value(xTarget);
+		  	m_target.xTargetPoint = (short) xTarget;
+		  	//Send value to the manager
+			if (m_taskManager)
+				m_taskManager->i_setTrackingTarget(m_target);	
+		}
+		else{
+			THROW_DEVFAILED(
+	        _CPTC("Wrong device mode"), 
+	        _CPTC("Cannot write x Axis target in fix mode \nSet value on property : FixXTarget"),
+	        _CPTC("BeamPositionTracking::write_xAxisTarget()")); 
 		}
 	}
 }
@@ -551,7 +717,11 @@ void BeamPositionTracking::write_xAxisTarget(Tango::WAttribute &attr)
 void BeamPositionTracking::read_yAxisTarget(Tango::Attribute &attr)
 {
 	DEBUG_STREAM << "BeamPositionTracking::read_yAxisTarget(Tango::Attribute &attr) entering... "<< endl;
-	attr.set_value(&m_target.yTargetPoint);
+
+	if (!fixMode)
+		attr.set_value(&m_target.yTargetPoint);
+	else
+		attr.set_value(&m_fixModeDef.target.yTargetPoint);
 }
 
 //+----------------------------------------------------------------------------
@@ -565,14 +735,22 @@ void BeamPositionTracking::write_yAxisTarget(Tango::WAttribute &attr)
 {
 	DEBUG_STREAM << "BeamPositionTracking::write_yAxisTarget(Tango::WAttribute &attr) entering... "<< endl;
 
-	Tango::DevShort yTarget;
-  	attr.get_write_value(yTarget);
-
-  	m_target.yTargetPoint = (short) yTarget;
-
   	if(m_initDone){
-		if (m_taskManager){
-			m_taskManager->i_setTrackingTarget(m_target);
+  		//Only if there is no fix mode
+		if (!fixMode){
+			Tango::DevShort yTarget;
+  			attr.get_write_value(yTarget);
+  			m_target.yTargetPoint = (short) yTarget;
+  			//Send value to the manager
+			if (m_taskManager){
+				m_taskManager->i_setTrackingTarget(m_target);
+			}
+		}
+		else{
+			THROW_DEVFAILED(
+	       	_CPTC("Wrong device mode"), 
+	        _CPTC("Cannot write y Axis target in fix mode \nSet value on property : FixYTarget"),
+	        _CPTC("BeamPositionTracking::write_yAxisTarget()")); 
 		}
 	}
 
@@ -614,7 +792,11 @@ void BeamPositionTracking::read_yAxisCurrentBeamPosition(Tango::Attribute &attr)
 void BeamPositionTracking::read_warningZoneXCenter(Tango::Attribute &attr)
 {
 	DEBUG_STREAM << "BeamPositionTracking::read_warningZoneXCenter(Tango::Attribute &attr) entering... "<< endl;
-	attr.set_value(&m_warningZone.xCenter);
+
+	if (!fixMode)
+		attr.set_value(&m_warningZone.xCenter);
+	else 
+		attr.set_value(&m_fixModeDef.warningZone.xCenter);
 }
 
 //+----------------------------------------------------------------------------
@@ -627,14 +809,24 @@ void BeamPositionTracking::read_warningZoneXCenter(Tango::Attribute &attr)
 void BeamPositionTracking::write_warningZoneXCenter(Tango::WAttribute &attr)
 {
 	DEBUG_STREAM << "BeamPositionTracking::write_warningZoneXCenter(Tango::WAttribute &attr) entering... "<< endl;
-	Tango::DevDouble xWarningZone;
-  	attr.get_write_value(xWarningZone);
-	m_warningZone.xCenter = (double) xWarningZone;
-
+	
 	if(m_initDone){
-		if (m_taskManager){
-			m_taskManager->i_setWarningZone(m_warningZone);
+  		//Only if there is no fix mode
+		if (!fixMode){
+			Tango::DevDouble xWarningZone;
+		  	attr.get_write_value(xWarningZone);
+			m_warningZone.xCenter = (double) xWarningZone;
+  			//Send value to the manager
+			if (m_taskManager){
+				m_taskManager->i_setWarningZone(m_warningZone);
+			}
+		}else{
+			THROW_DEVFAILED(
+	       	_CPTC("Wrong device mode"), 
+	        _CPTC("Cannot write X warning zone center in fix mode \nSet value on property : FixXWarningZoneCenter"),
+	        _CPTC("BeamPositionTracking::write_warningZoneXCenter()")); 
 		}
+
 	}
 }
 
@@ -648,7 +840,11 @@ void BeamPositionTracking::write_warningZoneXCenter(Tango::WAttribute &attr)
 void BeamPositionTracking::read_warningZoneYCenter(Tango::Attribute &attr)
 {
 	DEBUG_STREAM << "BeamPositionTracking::read_warningZoneYCenter(Tango::Attribute &attr) entering... "<< endl;
-	attr.set_value(&m_warningZone.yCenter);
+
+	if (!fixMode)
+		attr.set_value(&m_warningZone.yCenter);
+	else 
+		attr.set_value(&m_fixModeDef.warningZone.yCenter);
 
 }
 
@@ -662,13 +858,22 @@ void BeamPositionTracking::read_warningZoneYCenter(Tango::Attribute &attr)
 void BeamPositionTracking::write_warningZoneYCenter(Tango::WAttribute &attr)
 {
 	DEBUG_STREAM << "BeamPositionTracking::write_warningZoneYCenter(Tango::WAttribute &attr) entering... "<< endl;
-	Tango::DevDouble yWarningZone;
-  	attr.get_write_value(yWarningZone);
-	m_warningZone.yCenter = (double) yWarningZone;
 
 	if(m_initDone){
-		if (m_taskManager){
-			m_taskManager->i_setWarningZone(m_warningZone);
+  		//Only if there is no fix mode
+		if (!fixMode){
+			Tango::DevDouble yWarningZone;
+		  	attr.get_write_value(yWarningZone);
+			m_warningZone.yCenter = (double) yWarningZone;
+			//Send value to the manager
+			if (m_taskManager){
+				m_taskManager->i_setWarningZone(m_warningZone);
+			}
+		}else{
+			THROW_DEVFAILED(
+	       	_CPTC("Wrong device mode"), 
+	        _CPTC("Cannot write Y warning zone center in fix mode \nSet value on property : FixYWarningZoneCenter"),
+	        _CPTC("BeamPositionTracking::write_warningZoneYCenter()")); 
 		}
 	}
 }
@@ -683,7 +888,11 @@ void BeamPositionTracking::write_warningZoneYCenter(Tango::WAttribute &attr)
 void BeamPositionTracking::read_warningZoneRadius(Tango::Attribute &attr)
 {
 	DEBUG_STREAM << "BeamPositionTracking::read_warningZoneRadius(Tango::Attribute &attr) entering... "<< endl;
-	attr.set_value(&m_warningZone.radius);
+
+	if (!fixMode)
+		attr.set_value(&m_warningZone.radius);
+	else 
+		attr.set_value(&m_fixModeDef.warningZone.radius);
 }
 
 //+----------------------------------------------------------------------------
@@ -696,13 +905,22 @@ void BeamPositionTracking::read_warningZoneRadius(Tango::Attribute &attr)
 void BeamPositionTracking::write_warningZoneRadius(Tango::WAttribute &attr)
 {
 	DEBUG_STREAM << "BeamPositionTracking::write_warningZoneRadius(Tango::WAttribute &attr) entering... "<< endl;
-	Tango::DevDouble radius;
-  	attr.get_write_value(radius);
-	m_warningZone.radius = (double) radius;
 
 	if(m_initDone){
-		if (m_taskManager){
-			m_taskManager->i_setWarningZone(m_warningZone);
+  		//Only if there is no fix mode
+		if (!fixMode){
+			Tango::DevDouble radius;
+		  	attr.get_write_value(radius);
+			m_warningZone.radius = (double) radius;
+			//Send value to the manager
+			if (m_taskManager){
+				m_taskManager->i_setWarningZone(m_warningZone);
+			}
+		}else{
+			THROW_DEVFAILED(
+	       	_CPTC("Wrong device mode"), 
+	        _CPTC("Cannot write warning zone radius in fix mode \nSet value on property : FixWarningZoneRadius"),
+	        _CPTC("BeamPositionTracking::write_warningZoneRadius()")); 
 		}
 	}
 }
@@ -773,15 +991,7 @@ void BeamPositionTracking::stop_beam_tracking()
 		}
 	}
 }
-//+------------------------------------------------------------------
-/**
- *	method:	BeamPositionTracking::extractPIDCoeffients
- *
- *	description:	method to extract PIDs coefficent values on each axis
- *
- *
- */
-//+------------------------------------------------------------------
+
 BPTTaskManager::PIDCoefficient BeamPositionTracking::extractPIDCoeffients(std::string property) throw (std::invalid_argument){
 
     yat::StringTokenizer st(property, kTOKEN_SEPARATOR);
@@ -801,8 +1011,32 @@ BPTTaskManager::PIDCoefficient BeamPositionTracking::extractPIDCoeffients(std::s
 	}
 	return PIDToReturn;
 }
-
-
+//+------------------------------------------------------------------
+/**
+ *	method:	BeamPositionTracking::extractPIDCoeffients
+ *
+ *	description:	to init m_fixModeDef using properties
+ *
+ */
+//+------------------------------------------------------------------
+bool BeamPositionTracking::initFixModeValues(){
+	m_fixModeDef.isFixModeEnabled = fixMode;
+	m_fixModeDef.warningZone.xCenter = fixXWarningZoneCenter;
+	m_fixModeDef.warningZone.yCenter = fixYWarningZoneCenter;
+	m_fixModeDef.warningZone.radius = fixWarningZoneRadius;
+	m_fixModeDef.target.xTargetPoint = fixXTarget;
+	m_fixModeDef.target.yTargetPoint = fixYTarget;
+	//if fix mode is enabled, need to check values.. otherwise, do nothing
+	if(m_fixModeDef.isFixModeEnabled){
+		if ((m_fixModeDef.warningZone.xCenter < 0) || (m_fixModeDef.warningZone.yCenter < 0))
+			return false;
+		if (m_fixModeDef.warningZone.radius < 0)
+			return false;
+		if ((m_fixModeDef.target.xTargetPoint < 0) || (m_fixModeDef.target.yTargetPoint < 0))
+			return false;
+	}
+	return true;
+}
 //+------------------------------------------------------------------
 /**
  *	method:	BeamPositionTracking::acknowlege_step
@@ -825,7 +1059,6 @@ void BeamPositionTracking::acknowlege_step()
 	}catch(...){
 	}
 }
-
 
 
 

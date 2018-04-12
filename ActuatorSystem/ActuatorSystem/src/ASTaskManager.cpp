@@ -422,72 +422,74 @@ void ASTaskManager::moveAxisPosition(double relativeMovement, std::string axisId
 	double currentAxisPosition = 0;
 	double newPosition = 0;
 
+	if (relativeMovement != 0){
 
-	if(axisId == X_AXIS_ID){
-		if (m_simulatedMode)
-			m_simulatedXTranslation = relativeMovement;
-		else { // Act normal
-			// check new position - Setting lower or upper limit if out of bounds 
-			try{
-				currentAxisPosition = m_xActuatorPlugin->getAxisCurrentPosition();
-				newPosition = currentAxisPosition + relativeMovement;
-			}catch(...){
-				movement.state = Tango::FAULT;
-				movement.status = "Couldn't getAxisCurrentPosition while axis " + axisId + " positionning..";
-				updateTaskStateStatus(movement);
-				return;
-			}
-			try{
-				if (newPosition >= m_xAxisMaxPosition){
-					m_axesPositionningState.xLimitReached = true;
-					m_axesPositionningState.xLimitStatus = "Upper limit has been reached on X axis !";
-					m_xActuatorPlugin->setAxisPosition(m_xAxisMaxPosition);
-				}else if (newPosition <= m_xAxisMinPosition){
-					m_axesPositionningState.xLimitReached = true;
-					m_axesPositionningState.xLimitStatus = "Lower limit has been reached on X axis !";
-					m_xActuatorPlugin->setAxisPosition(m_xAxisMinPosition);
-				}else if ((newPosition < m_xAxisMaxPosition) && (newPosition > m_xAxisMinPosition)){
-					m_axesPositionningState.xLimitReached = false;
-					m_xActuatorPlugin->setAxisPosition(newPosition);
+		if(axisId == X_AXIS_ID){
+			if (m_simulatedMode)
+				m_simulatedXTranslation = relativeMovement;
+			else { // Act normal
+				// check new position - Setting lower/upper limit if out of bounds 
+				try{
+					currentAxisPosition = m_xActuatorPlugin->getAxisCurrentPosition();
+					newPosition = currentAxisPosition + relativeMovement;
+				}catch(...){
+					movement.state = Tango::FAULT;
+					movement.status = "Couldn't getAxisCurrentPosition while axis " + axisId + " positionning..";
+					updateTaskStateStatus(movement);
+					return;
 				}
-			}catch(...){
-				movement.state = Tango::FAULT;
-				movement.status = "Couldn't move axis " + axisId;
-				updateTaskStateStatus(movement);
+				try{
+					if (newPosition >= m_xAxisMaxPosition){
+						m_axesPositionningState.xLimitReached = true;
+						m_axesPositionningState.xLimitStatus = "Upper limit has been reached on X axis !";
+						m_xActuatorPlugin->setAxisPosition(m_xAxisMaxPosition);
+					}else if (newPosition <= m_xAxisMinPosition){
+						m_axesPositionningState.xLimitReached = true;
+						m_axesPositionningState.xLimitStatus = "Lower limit has been reached on X axis !";
+						m_xActuatorPlugin->setAxisPosition(m_xAxisMinPosition);
+					}else if ((newPosition < m_xAxisMaxPosition) && (newPosition > m_xAxisMinPosition)){
+						m_axesPositionningState.xLimitReached = false;
+						m_xActuatorPlugin->setAxisPosition(newPosition);
+					}
+				}catch(...){
+					movement.state = Tango::FAULT;
+					movement.status = "Couldn't move axis " + axisId;
+					updateTaskStateStatus(movement);
+				}
 			}
 		}
-	}
-	else if (axisId == Y_AXIS_ID){	
-		if (m_simulatedMode)
-			m_simulatedYTranslation = relativeMovement;
-		else { // Act normal
-			// check new position - Setting lower or upper limit if out of bounds 
-			try{
-				currentAxisPosition = m_yActuatorPlugin->getAxisCurrentPosition();
-				newPosition = currentAxisPosition + relativeMovement;
-			}catch(...){
-				movement.state = Tango::FAULT;
-				movement.status = "Couldn't getAxisCurrentPosition while axis " + axisId + " positionning..";
-				updateTaskStateStatus(movement);
-				return;
-			}
-			try{
-				if (newPosition >= m_yAxisMaxPosition){
-					m_axesPositionningState.yLimitReached = true;
-					m_axesPositionningState.yLimitStatus = "Upper limit has been reached on Y axis !";
-					m_yActuatorPlugin->setAxisPosition(m_yAxisMaxPosition);
-				}else if (newPosition <= m_yAxisMinPosition){
-					m_axesPositionningState.yLimitReached = true;
-					m_axesPositionningState.yLimitStatus = "Lower limit has been reached on Y axis !";
-					m_yActuatorPlugin->setAxisPosition(m_yAxisMinPosition);
-				}else if((newPosition < m_yAxisMaxPosition) && (newPosition > m_yAxisMinPosition)){
-					m_yActuatorPlugin->setAxisPosition(newPosition);
-					m_axesPositionningState.yLimitReached = false;
+		else if (axisId == Y_AXIS_ID){	
+			if (m_simulatedMode)
+				m_simulatedYTranslation = relativeMovement;
+			else { // Act normal
+				// check new position - Setting lower or upper limit if out of bounds 
+				try{
+					currentAxisPosition = m_yActuatorPlugin->getAxisCurrentPosition();
+					newPosition = currentAxisPosition + relativeMovement;
+				}catch(...){
+					movement.state = Tango::FAULT;
+					movement.status = "Couldn't getAxisCurrentPosition while axis " + axisId + " positionning..";
+					updateTaskStateStatus(movement);
+					return;
 				}
-			}catch(...){
-				movement.state = Tango::FAULT;
-				movement.status = "Couldn't move axis " + axisId;
-				updateTaskStateStatus(movement);
+				try{
+					if (newPosition >= m_yAxisMaxPosition){
+						m_axesPositionningState.yLimitReached = true;
+						m_axesPositionningState.yLimitStatus = "Upper limit has been reached on Y axis !";
+						m_yActuatorPlugin->setAxisPosition(m_yAxisMaxPosition);
+					}else if (newPosition <= m_yAxisMinPosition){
+						m_axesPositionningState.yLimitReached = true;
+						m_axesPositionningState.yLimitStatus = "Lower limit has been reached on Y axis !";
+						m_yActuatorPlugin->setAxisPosition(m_yAxisMinPosition);
+					}else if((newPosition < m_yAxisMaxPosition) && (newPosition > m_yAxisMinPosition)){
+						m_yActuatorPlugin->setAxisPosition(newPosition);
+						m_axesPositionningState.yLimitReached = false;
+					}
+				}catch(...){
+					movement.state = Tango::FAULT;
+					movement.status = "Couldn't move axis " + axisId;
+					updateTaskStateStatus(movement);
+				}
 			}
 		}
 	}

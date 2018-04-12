@@ -409,8 +409,10 @@ void ActuatorSystem::get_device_property()
 	//------------------------------------------------------------------
 	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "SimulatedAxis", "XAxisPluginType");
 	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "SimulatedAxis", "YAxisPluginType");
+	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "Precise/which/device", "XAxisPluginPath");
 	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "Precise/which/device", "YAxisPluginPath");
 	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "Precise/which/device", "XAxisDeviceAdress");
+	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "Precise/which/device", "YAxisDeviceAdress");
 	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "0", "XAxisMinPosition");
 	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "1", "XAxisMaxPosition");
 	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "0", "YAxisMinPosition");

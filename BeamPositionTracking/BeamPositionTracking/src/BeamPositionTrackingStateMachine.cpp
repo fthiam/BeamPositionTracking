@@ -204,6 +204,48 @@ bool BeamPositionTracking::is_thresholdedImage_allowed(Tango::AttReqType type)
 		//	Re-Start of Generated Code
 	return true;
 }
+//+----------------------------------------------------------------------------
+//
+// method : 		BeamPositionTracking::is_xAxisRegulationThreshold_allowed
+// 
+// description : 	Read/Write allowed for xAxisRegulationThreshold attribute.
+//
+//-----------------------------------------------------------------------------
+bool BeamPositionTracking::is_xAxisRegulationThreshold_allowed(Tango::AttReqType type)
+{
+		//	End of Generated Code
+
+		//	Re-Start of Generated Code
+	return true;
+}
+//+----------------------------------------------------------------------------
+//
+// method : 		BeamPositionTracking::is_yAxisRegulationThreshold_allowed
+// 
+// description : 	Read/Write allowed for yAxisRegulationThreshold attribute.
+//
+//-----------------------------------------------------------------------------
+bool BeamPositionTracking::is_yAxisRegulationThreshold_allowed(Tango::AttReqType type)
+{
+		//	End of Generated Code
+
+		//	Re-Start of Generated Code
+	return true;
+}
+//+----------------------------------------------------------------------------
+//
+// method : 		BeamPositionTracking::is_fixMode_allowed
+// 
+// description : 	Read/Write allowed for fixMode attribute.
+//
+//-----------------------------------------------------------------------------
+bool BeamPositionTracking::is_fixMode_allowed(Tango::AttReqType type)
+{
+		//	End of Generated Code
+
+		//	Re-Start of Generated Code
+	return true;
+}
 
 //=================================================
 //		Commands Allowed Methods

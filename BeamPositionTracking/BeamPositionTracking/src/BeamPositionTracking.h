@@ -100,6 +100,11 @@ public :
 		Tango::DevDouble	attr_warningZoneYCenter_write;
 		Tango::DevDouble	*attr_warningZoneRadius_read;
 		Tango::DevDouble	attr_warningZoneRadius_write;
+		Tango::DevUShort	*attr_xAxisRegulationThreshold_read;
+		Tango::DevUShort	attr_xAxisRegulationThreshold_write;
+		Tango::DevUShort	*attr_yAxisRegulationThreshold_read;
+		Tango::DevUShort	attr_yAxisRegulationThreshold_write;
+		Tango::DevBoolean	*attr_fixMode_read;
 		Tango::DevUChar	*attr_thresholdedImage_read;
 //@}
 
@@ -116,14 +121,6 @@ public :
  *	number of centroid values to calculate the moving of motor
  */
 	Tango::DevShort	nbImgToAlign;
-/**
- *	delta in pixel on x below the automatic alignement consider that the beam is aligned
- */
-	Tango::DevShort	xTolerance;
-/**
- *	delta in pixel on y below the automatic alignement consider that the beam is aligned
- */
-	Tango::DevShort	yTolerance;
 /**
  *	
  */
@@ -159,6 +156,30 @@ public :
  *	Every step will have to be acknowlege with "AcknowlegeStep" cmd
  */
 	string	deviceMode;
+/**
+ *	Used as x axis target when FixMode = true
+ */
+	Tango::DevShort	fixXTarget;
+/**
+ *	Used as y axis target when FixMode = true
+ */
+	Tango::DevShort	fixYTarget;
+/**
+ *	
+ */
+	Tango::DevBoolean	fixMode;
+/**
+ *	Used as x warning zone center when FixMode = true
+ */
+	Tango::DevShort	fixXWarningZoneCenter;
+/**
+ *	Used as y warning zone center when FixMode = true
+ */
+	Tango::DevShort	fixYWarningZoneCenter;
+/**
+ *	Used as warning zone radius when FixMode = true
+ */
+	Tango::DevShort	fixWarningZoneRadius;
 //@}
 
 /**
@@ -284,6 +305,26 @@ public :
  */
 	virtual void write_warningZoneRadius(Tango::WAttribute &attr);
 /**
+ *	Extract real attribute values for xAxisRegulationThreshold acquisition result.
+ */
+	virtual void read_xAxisRegulationThreshold(Tango::Attribute &attr);
+/**
+ *	Write xAxisRegulationThreshold attribute values to hardware.
+ */
+	virtual void write_xAxisRegulationThreshold(Tango::WAttribute &attr);
+/**
+ *	Extract real attribute values for yAxisRegulationThreshold acquisition result.
+ */
+	virtual void read_yAxisRegulationThreshold(Tango::Attribute &attr);
+/**
+ *	Write yAxisRegulationThreshold attribute values to hardware.
+ */
+	virtual void write_yAxisRegulationThreshold(Tango::WAttribute &attr);
+/**
+ *	Extract real attribute values for fixMode acquisition result.
+ */
+	virtual void read_fixMode(Tango::Attribute &attr);
+/**
  *	Extract real attribute values for thresholdedImage acquisition result.
  */
 	virtual void read_thresholdedImage(Tango::Attribute &attr);
@@ -319,6 +360,18 @@ public :
  *	Read/Write allowed for warningZoneRadius attribute.
  */
 	virtual bool is_warningZoneRadius_allowed(Tango::AttReqType type);
+/**
+ *	Read/Write allowed for xAxisRegulationThreshold attribute.
+ */
+	virtual bool is_xAxisRegulationThreshold_allowed(Tango::AttReqType type);
+/**
+ *	Read/Write allowed for yAxisRegulationThreshold attribute.
+ */
+	virtual bool is_yAxisRegulationThreshold_allowed(Tango::AttReqType type);
+/**
+ *	Read/Write allowed for fixMode attribute.
+ */
+	virtual bool is_fixMode_allowed(Tango::AttReqType type);
 /**
  *	Read/Write allowed for thresholdedImage attribute.
  */
@@ -385,6 +438,8 @@ private :
 
 	BPTTaskManager::PIDCoefficient extractPIDCoeffients(std::string property) throw (std::invalid_argument);
 
+	bool initFixModeValues();
+
 	BPTTaskManager::BPTTaskManager* m_taskManager;
 
 	BPTTaskManager::WarningZone m_warningZone;
@@ -395,6 +450,10 @@ private :
 
 	short m_yBeamPositionInPixels;
 
+	ushort m_xAxisRegulationThreshold;
+
+	ushort m_yAxisRegulationThreshold;
+
 	double m_computedTime;
 
 	bool m_initDone;
@@ -402,7 +461,11 @@ private :
 	std::vector<unsigned char> m_thresholdedImage;
 
 	int m_imageHigh;
+
 	int m_imageWidth;
+
+
+	BPTTaskManager::FixModeDefinition m_fixModeDef;
 };
 
 }	// namespace_ns

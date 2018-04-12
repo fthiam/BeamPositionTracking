@@ -42,7 +42,7 @@ class SensorInterface : public yat4tango::DevicePlugIn
 	};	
 
 
-	virtual void start(Tango::DeviceImpl * host_device)
+	virtual void start(Tango::DeviceImpl * host_device, bool fixMode)
 		throw (Tango::DevFailed) = 0;
 
 	virtual sensorData getSensorData()

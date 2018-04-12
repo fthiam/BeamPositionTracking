@@ -47,7 +47,7 @@ public:
 	BPTTaskManager (Tango::DeviceImpl* devHost, yat4tango::DynamicAttributeManager* dynAttrManager,
 							std::string pluginType, std::string pluginPath, std::string actuatorSystDeviceAdr, 
 								PIDCoefficient xPidCoef, PIDCoefficient yPIDCoefficient,
-								double xAxisNbStepToCalibrate, double yAxisNbStepToCalibrate, int nbImgToAlign, int taskPeriod, bool simulatedMode);
+								double xAxisNbStepToCalibrate, double yAxisNbStepToCalibrate, int nbImgToAlign, int taskPeriod, bool simulatedMode, FixModeDefinition fixMode);
 
 	//- dtor
     virtual ~BPTTaskManager (void);
@@ -63,6 +63,10 @@ public:
 
 	void i_setWarningZone(WarningZone warningZone);
 
+	void i_setXAxisRegThreshold(ushort newXRegThreshold);
+
+	void i_setYAxisRegThreshold(ushort newYRegThreshold);
+
 	void i_setTrackingTarget(Target target);
 
 	StateStatus i_getStateStatus();
@@ -70,6 +74,8 @@ public:
 	ManagerDataPacket i_getManagerDataPacket();
 
 	void i_acknowlegeStep();
+
+	bool sensorPluginInitialisation();
 
 
 protected:
@@ -90,7 +96,7 @@ private:
 	//Initialisation
 	bool initializeAxesInformations();    
 	void initPIDCorrectors();
-	bool sensorPluginInitialisation();
+	//bool sensorPluginInitialisation();
 	void startPlugin();
 	bool actuatorSystemProxyInitialisation();
 
@@ -129,6 +135,7 @@ private:
     int m_nbImgToAlign;
     PIDCorrector::PIDCorrector *m_pidXCorrector;
 	PIDCorrector::PIDCorrector *m_pidYCorrector;
+	
 	double m_xTargetedCentroid;
     double m_yTargetedCentroid;
     bool m_simulatedMode;
@@ -166,6 +173,10 @@ private:
 	BPT::SensorInterface::SensorInterface::sensorData m_sensorData; 
 	std::vector<BPT::SensorInterface::SensorInterface::sensorData> m_sensorDataList;
 	BPT::SensorInterface::SensorInterface::sensorState m_sensorState;
+
+
+	//FixMode 
+	FixModeDefinition m_fixModeDef;
 };
 } //end Namespace
 #endif // _MY_DEVICE_TASK_H_

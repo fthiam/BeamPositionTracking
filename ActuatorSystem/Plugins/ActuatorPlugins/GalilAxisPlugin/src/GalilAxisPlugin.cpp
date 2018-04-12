@@ -110,7 +110,7 @@ void GalilAxisPlugin::setAxisPosition(double position)throw (Tango::DevFailed){
 		_stateStatus.axisStatus = "Movement is starting..";
 		//positionAttribute = new Tango::DeviceAttribute(ATTR_POSITION_STR, position);
 		//For firsts tests on beamline
-		std::cout<<"Suppose to move axis "<<_deviceURLAdress<<", with value : "<<position<<std::endl;
+		std::cout<<"Suppose to write attriute position of : "<<_deviceURLAdress<<", \nwith value : "<<position<<std::endl;
 		//this->_galilAxisDevice->write_attribute(*positionAttribute);
 	}
 }

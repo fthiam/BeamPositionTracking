@@ -57,8 +57,12 @@ public:
 
 	bool checkDetectorPixelDepth();
 
+	void updatePercentageDetection(double newPercentageDetection);
+
 private:
 	
+	std::string type2str(int type);
+
 	bool ensureCCDDeviceIsRunnning();
 
 	void calculBeam();

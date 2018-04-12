@@ -61,7 +61,7 @@ public:
 	~LimaPlugin();
 
 
-	void start(Tango::DeviceImpl * host_device) 
+	void start(Tango::DeviceImpl * host_device, bool fixMode) 
 		throw (Tango::DevFailed);
 	//-------------------------------------------------------------------------
 	// yat4tango::DevicePlugIn interface
@@ -87,6 +87,10 @@ public:
 
 	BPT::SensorInterface::SensorInterface::sensorState getSensorState()
 		throw(Tango::DevFailed);
+
+	void write_callback_percentageDetection(yat4tango::DynamicAttributeWriteCallbackData& cbd);
+
+	void read_callback_percentageDetection(yat4tango::DynamicAttributeReadCallbackData& cbd);
 		
 private:
 
@@ -100,30 +104,37 @@ private:
 
 	void initialize_connection();
 
+	void percentageDetection_attribute_present();
+
+	void setPercentageDetection(double percentageDetection);
+
 	short m_reducedImageWidth;
 
 	short m_reducedImageHeight;
 
-	double m_percentageDetection;
+	std::string m_deviceCCDAdress;
 
-	std::string m_deviceAdress;
+	std::string m_currentDeviceAdress;
 
 	CalculationProcess::CalculationProcess *m_calculationProcess;
 
 	//	mp_deviceCCD:	device to access CCD
 	Tango::DeviceProxy *m_deviceCCD;
 
+	bool m_percentageDetectionPresent;
 
 	std::string m_limaDeviceAdressStr;
-	std::string m_reducedImageHeightStr;
-	std::string m_reducedImageWidthStr;
-	std::string m_percentageDetectionStr;
-	
+	std::string m_thresholdStr;
+
 	///DATA///
 	double m_xCentroid;
 	double m_yCentroid;
 	bool m_isBeamDetected;
 	bool m_isBeamInZone;
+
+	double m_percentageDetection;
+
+	bool m_fixMode;
 };
 
 
