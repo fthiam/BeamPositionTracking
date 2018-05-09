@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>fr.soleil.device.ActuatorSystem</groupId>
+        <artifactId>ActuatorSystemActuatorPlugins</artifactId>
+        <version>1.0.1-SNAPSHOT</version>
+    </parent>
+
+    <groupId>fr.soleil.device.ActuatorSystem.ActuatorSystemActuatorPlugins</groupId>
+    <artifactId>GalilAxisPlugin-${aol}-shared-${mode}</artifactId>
+
+    <packaging>nar</packaging>
+    <name>GalilAxisPlugin</name> <!-- used for the name of executable -->
+    <description>Plugin in order to work with galil axis device</description>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.freehep</groupId>
+                <artifactId>freehep-nar-plugin</artifactId>			
+            </plugin>
+        </plugins>
+    </build>
+    
+    <dependencies>
+        <dependency>
+            <groupId>fr.soleil.lib</groupId>
+            <artifactId>YAT4Tango-${aol}-${library}-${mode}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.soleil.lib</groupId>
+            <artifactId>YAT-${aol}-${library}-${mode}</artifactId>
+        </dependency>
+   </dependencies> 
+
+</project>
