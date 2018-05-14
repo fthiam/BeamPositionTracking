@@ -29,9 +29,9 @@ namespace PIDCorrector
 		PIDCorrector(double P, double I, double D);
 		~PIDCorrector();
 
-		double getStepValue(double error, double loopTime/*, double maxStep*/);
+		void newStepValue(double error, double loopTime);
 
-		void initCorrector();
+		void initCorrector(double axisPosition);
 
 		void setPGain(double value);
 
@@ -40,14 +40,25 @@ namespace PIDCorrector
 		void setDGain(double value);
 
 		void setLoopIntervalTime(double loopTime);
+
+		double getDelta();
+
+		double getNewPosition();
 		
 	private:
+
+		//PID configuration
 		double _dt;
         double _Kp;
         double _Kd;
         double _Ki;
         double _pre_error;
-        double _integral;
+        double _axisPosition;
+
+        //PID Outputs
+        double _Pout;
+        double _Iout;
+        double _Dout;
 	};
 }//namspace
 #endif

@@ -364,8 +364,6 @@ void BeamPositionTrackingClass::attribute_factory(vector<Tango::Attr *> &att_lis
 	Tango::UserDefaultAttrProp	x_axis_target_prop;
 	x_axis_target_prop.set_unit("Pixels");
 	x_axis_target->set_default_properties(x_axis_target_prop);
-	x_axis_target->set_memorized();
-	x_axis_target->set_memorized_init(true);
 	att_list.push_back(x_axis_target);
 
 	//	Attribute : yAxisTarget
@@ -373,8 +371,6 @@ void BeamPositionTrackingClass::attribute_factory(vector<Tango::Attr *> &att_lis
 	Tango::UserDefaultAttrProp	y_axis_target_prop;
 	y_axis_target_prop.set_unit("Pixels");
 	y_axis_target->set_default_properties(y_axis_target_prop);
-	y_axis_target->set_memorized();
-	y_axis_target->set_memorized_init(true);
 	att_list.push_back(y_axis_target);
 
 	//	Attribute : xAxisCurrentBeamPosition
@@ -393,21 +389,43 @@ void BeamPositionTrackingClass::attribute_factory(vector<Tango::Attr *> &att_lis
 
 	//	Attribute : warningZoneXCenter
 	warningZoneXCenterAttrib	*warning_zone_xcenter = new warningZoneXCenterAttrib();
-	warning_zone_xcenter->set_memorized();
-	warning_zone_xcenter->set_memorized_init(true);
 	att_list.push_back(warning_zone_xcenter);
 
 	//	Attribute : warningZoneYCenter
 	warningZoneYCenterAttrib	*warning_zone_ycenter = new warningZoneYCenterAttrib();
-	warning_zone_ycenter->set_memorized();
-	warning_zone_ycenter->set_memorized_init(true);
 	att_list.push_back(warning_zone_ycenter);
 
 	//	Attribute : warningZoneRadius
 	warningZoneRadiusAttrib	*warning_zone_radius = new warningZoneRadiusAttrib();
-	warning_zone_radius->set_memorized();
-	warning_zone_radius->set_memorized_init(true);
 	att_list.push_back(warning_zone_radius);
+
+	//	Attribute : xAxisRegulationThreshold
+	xAxisRegulationThresholdAttrib	*x_axis_regulation_threshold = new xAxisRegulationThresholdAttrib();
+	Tango::UserDefaultAttrProp	x_axis_regulation_threshold_prop;
+	x_axis_regulation_threshold_prop.set_unit("Pixels");
+	x_axis_regulation_threshold_prop.set_max_value("2048");
+	x_axis_regulation_threshold_prop.set_min_value("0");
+	x_axis_regulation_threshold_prop.set_description("Represents the threshold of regulation activation on X axis. Under this value, no correction will be send !");
+	x_axis_regulation_threshold->set_default_properties(x_axis_regulation_threshold_prop);
+	x_axis_regulation_threshold->set_memorized();
+	x_axis_regulation_threshold->set_memorized_init(true);
+	att_list.push_back(x_axis_regulation_threshold);
+
+	//	Attribute : yAxisRegulationThreshold
+	yAxisRegulationThresholdAttrib	*y_axis_regulation_threshold = new yAxisRegulationThresholdAttrib();
+	Tango::UserDefaultAttrProp	y_axis_regulation_threshold_prop;
+	y_axis_regulation_threshold_prop.set_unit("Pixels");
+	y_axis_regulation_threshold_prop.set_max_value("2048");
+	y_axis_regulation_threshold_prop.set_min_value("0");
+	y_axis_regulation_threshold_prop.set_description("Represents the threshold of regulation activation on X axis. Under this value, no correction will be send !");
+	y_axis_regulation_threshold->set_default_properties(y_axis_regulation_threshold_prop);
+	y_axis_regulation_threshold->set_memorized();
+	y_axis_regulation_threshold->set_memorized_init(true);
+	att_list.push_back(y_axis_regulation_threshold);
+
+	//	Attribute : fixedMode
+	fixedModeAttrib	*fixed_mode = new fixedModeAttrib();
+	att_list.push_back(fixed_mode);
 
 	//	Attribute : thresholdedImage
 	thresholdedImageAttrib	*thresholded_image = new thresholdedImageAttrib();
@@ -437,7 +455,9 @@ void BeamPositionTrackingClass::get_class_property()
 	if (Tango::Util::instance()->_UseDb==true)
 		get_db_class()->get_property(cl_prop);
 	Tango::DbDatum	def_prop;
-	
+	int	i = -1;
+
+
 	//	End of Automatic code generation
 	//------------------------------------------------------------------
 
@@ -478,34 +498,6 @@ void BeamPositionTrackingClass::set_default_property()
 
 	prop_name = "NbImgToAlign";
 	prop_desc = "number of centroid values to calculate the moving of motor";
-	prop_def  = "";
-	vect_data.clear();
-	if (prop_def.length()>0)
-	{
-		Tango::DbDatum	data(prop_name);
-		data << vect_data ;
-		dev_def_prop.push_back(data);
-		add_wiz_dev_prop(prop_name, prop_desc,  prop_def);
-	}
-	else
-		add_wiz_dev_prop(prop_name, prop_desc);
-
-	prop_name = "XTolerance";
-	prop_desc = "delta in pixel on x below the automatic alignement consider that the beam is aligned";
-	prop_def  = "";
-	vect_data.clear();
-	if (prop_def.length()>0)
-	{
-		Tango::DbDatum	data(prop_name);
-		data << vect_data ;
-		dev_def_prop.push_back(data);
-		add_wiz_dev_prop(prop_name, prop_desc,  prop_def);
-	}
-	else
-		add_wiz_dev_prop(prop_name, prop_desc);
-
-	prop_name = "YTolerance";
-	prop_desc = "delta in pixel on y below the automatic alignement consider that the beam is aligned";
 	prop_def  = "";
 	vect_data.clear();
 	if (prop_def.length()>0)
@@ -618,6 +610,104 @@ void BeamPositionTrackingClass::set_default_property()
 
 	prop_name = "DeviceMode";
 	prop_desc = "Either : NORMAL, SIMULATED\nEvery step will have to be acknowlege with \"AcknowlegeStep\" cmd";
+	prop_def  = "";
+	vect_data.clear();
+	if (prop_def.length()>0)
+	{
+		Tango::DbDatum	data(prop_name);
+		data << vect_data ;
+		dev_def_prop.push_back(data);
+		add_wiz_dev_prop(prop_name, prop_desc,  prop_def);
+	}
+	else
+		add_wiz_dev_prop(prop_name, prop_desc);
+
+	prop_name = "FixedXTarget";
+	prop_desc = "Used as x axis target when FixMode = true";
+	prop_def  = "";
+	vect_data.clear();
+	if (prop_def.length()>0)
+	{
+		Tango::DbDatum	data(prop_name);
+		data << vect_data ;
+		dev_def_prop.push_back(data);
+		add_wiz_dev_prop(prop_name, prop_desc,  prop_def);
+	}
+	else
+		add_wiz_dev_prop(prop_name, prop_desc);
+
+	prop_name = "FixedYTarget";
+	prop_desc = "Used as y axis target when FixMode = true";
+	prop_def  = "";
+	vect_data.clear();
+	if (prop_def.length()>0)
+	{
+		Tango::DbDatum	data(prop_name);
+		data << vect_data ;
+		dev_def_prop.push_back(data);
+		add_wiz_dev_prop(prop_name, prop_desc,  prop_def);
+	}
+	else
+		add_wiz_dev_prop(prop_name, prop_desc);
+
+	prop_name = "FixedMode";
+	prop_desc = "";
+	prop_def  = "";
+	vect_data.clear();
+	if (prop_def.length()>0)
+	{
+		Tango::DbDatum	data(prop_name);
+		data << vect_data ;
+		dev_def_prop.push_back(data);
+		add_wiz_dev_prop(prop_name, prop_desc,  prop_def);
+	}
+	else
+		add_wiz_dev_prop(prop_name, prop_desc);
+
+	prop_name = "FixedXWarningZoneCenter";
+	prop_desc = "Used as x warning zone center when FixMode = true";
+	prop_def  = "";
+	vect_data.clear();
+	if (prop_def.length()>0)
+	{
+		Tango::DbDatum	data(prop_name);
+		data << vect_data ;
+		dev_def_prop.push_back(data);
+		add_wiz_dev_prop(prop_name, prop_desc,  prop_def);
+	}
+	else
+		add_wiz_dev_prop(prop_name, prop_desc);
+
+	prop_name = "FixedYWarningZoneCenter";
+	prop_desc = "Used as y warning zone center when FixMode = true";
+	prop_def  = "";
+	vect_data.clear();
+	if (prop_def.length()>0)
+	{
+		Tango::DbDatum	data(prop_name);
+		data << vect_data ;
+		dev_def_prop.push_back(data);
+		add_wiz_dev_prop(prop_name, prop_desc,  prop_def);
+	}
+	else
+		add_wiz_dev_prop(prop_name, prop_desc);
+
+	prop_name = "FixedWarningZoneRadius";
+	prop_desc = "Used as warning zone radius when FixMode = true";
+	prop_def  = "";
+	vect_data.clear();
+	if (prop_def.length()>0)
+	{
+		Tango::DbDatum	data(prop_name);
+		data << vect_data ;
+		dev_def_prop.push_back(data);
+		add_wiz_dev_prop(prop_name, prop_desc,  prop_def);
+	}
+	else
+		add_wiz_dev_prop(prop_name, prop_desc);
+
+	prop_name = "AxesAliases";
+	prop_desc = "x, y";
 	prop_def  = "";
 	vect_data.clear();
 	if (prop_def.length()>0)

@@ -168,11 +168,13 @@ public:
 class yPositionAttrib: public Tango::Attr
 {
 public:
-	yPositionAttrib():Attr("yPosition", Tango::DEV_DOUBLE, Tango::READ) {};
+	yPositionAttrib():Attr("yPosition", Tango::DEV_DOUBLE, Tango::READ_WRITE) {};
 	~yPositionAttrib() {};
 	
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
 	{(static_cast<ActuatorSystem *>(dev))->read_yPosition(att);}
+	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
+	{(static_cast<ActuatorSystem *>(dev))->write_yPosition(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 	{return (static_cast<ActuatorSystem *>(dev))->is_yPosition_allowed(ty);}
 };
@@ -180,11 +182,13 @@ public:
 class xPositionAttrib: public Tango::Attr
 {
 public:
-	xPositionAttrib():Attr("xPosition", Tango::DEV_DOUBLE, Tango::READ) {};
+	xPositionAttrib():Attr("xPosition", Tango::DEV_DOUBLE, Tango::READ_WRITE) {};
 	~xPositionAttrib() {};
 	
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
 	{(static_cast<ActuatorSystem *>(dev))->read_xPosition(att);}
+	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
+	{(static_cast<ActuatorSystem *>(dev))->write_xPosition(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 	{return (static_cast<ActuatorSystem *>(dev))->is_xPosition_allowed(ty);}
 };

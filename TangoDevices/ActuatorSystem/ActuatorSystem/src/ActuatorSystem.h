@@ -91,7 +91,9 @@ public :
  */
 //@{
 		Tango::DevDouble	*attr_xPosition_read;
+		Tango::DevDouble	attr_xPosition_write;
 		Tango::DevDouble	*attr_yPosition_read;
+		Tango::DevDouble	attr_yPosition_write;
 		Tango::DevState	*attr_xState_read;
 		Tango::DevState	*attr_yState_read;
 		Tango::DevBoolean	*attr_isXLinear_read;
@@ -236,9 +238,17 @@ public :
  */
 	virtual void read_xPosition(Tango::Attribute &attr);
 /**
+ *	Write xPosition attribute values to hardware.
+ */
+	virtual void write_xPosition(Tango::WAttribute &attr);
+/**
  *	Extract real attribute values for yPosition acquisition result.
  */
 	virtual void read_yPosition(Tango::Attribute &attr);
+/**
+ *	Write yPosition attribute values to hardware.
+ */
+	virtual void write_yPosition(Tango::WAttribute &attr);
 /**
  *	Extract real attribute values for xState acquisition result.
  */

@@ -438,7 +438,7 @@ void ActuatorSystemClass::get_class_property()
 	if (Tango::Util::instance()->_UseDb==true)
 		get_db_class()->get_property(cl_prop);
 	Tango::DbDatum	def_prop;
-	
+	int	i = -1;
 
 
 	//	End of Automatic code generation

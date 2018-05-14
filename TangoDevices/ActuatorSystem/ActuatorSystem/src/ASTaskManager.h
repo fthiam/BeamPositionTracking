@@ -89,6 +89,9 @@ public:
 
 	void i_moveAxes(double xAxisRelativeMovement, double yAxisRelativeMovement);
 
+	void i_setXAxisPosition(double position);
+	void i_setYAxisPosition(double position);
+
 	void i_stopAxes();
 
 protected:
@@ -107,10 +110,10 @@ private:
 	bool refreshAxes();
     void refreshTaskState();
 	void moveAxisPosition(double relativeMovement, std::string axisId);
+	void setAxisPosition(double position, std::string axisId);
 	void stopAxesMovement();
     void updateTaskStateStatus(StateStatus stateStatus);
     StateStatus getTaskCurrentState();
-
 
     //Actuator plugin
     yat::IPlugInInfo* m_pluginInfo;

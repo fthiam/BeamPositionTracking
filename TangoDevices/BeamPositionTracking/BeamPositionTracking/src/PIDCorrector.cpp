@@ -31,7 +31,6 @@ namespace PIDCorrector
 		_Kd = D; //derivative gain 
 		_dt = 0; //loop interval time
 		_pre_error = 0;
-		_integral = 0;
 	}
 	//--------------------------------------------------------
 	/**
@@ -57,7 +56,9 @@ namespace PIDCorrector
 		_dt = loopTime;
 	}
 
-	void PIDCorrector::initCorrector(){
+	void PIDCorrector::initCorrector(double axisPosition){
+		std::cout<<"initCorrector entering  axisPosition = "<<axisPosition<<std::endl;
+		_axisPosition = axisPosition;
 		_pre_error = 0;
 	}
 	//--------------------------------------------------------
@@ -66,25 +67,44 @@ namespace PIDCorrector
 	 *	Description : will calculate step value 
 	 */
 	//--------------------------------------------------------
-	double PIDCorrector::getStepValue(double error, double loopTime){
+	void PIDCorrector::newStepValue(double error, double loopTime){
 
 		_dt = loopTime;
 	    // Proportional term
-	    double Pout = 0 ;
-	    Pout = _Kp * error;
+	    _Pout = 0 ;
+	    _Pout = _Kp * error;
 	    // Integral term
-	    _integral += error * _dt;
-	    double Iout = _Ki * _integral;
+	    _axisPosition += _Ki *  error * _dt;;
+	    _Iout = _axisPosition;
+
 	    // Derivative term
 	    double derivative = 0;
 	    if(_dt != 0)
 	    	derivative = (error - _pre_error) / _dt;
-	    double Dout = _Kd * derivative;
-	    // Calculate total output
-	    double output = Pout + Iout + Dout;
+	    _Dout = _Kd * derivative;
+
 	    // Save error to previous error
 	    _pre_error = error;
+	}
+	//--------------------------------------------------------
+	/**
+	 *	PIDCorrector::getDelta()
+	 */
+	//--------------------------------------------------------
+	double PIDCorrector::getDelta(){
+		double output = _Pout + _Dout;
 
 	    return output;
 	}
+	//--------------------------------------------------------
+	/**
+	 *	PIDCorrector::getNewPosition()
+	 */
+	//--------------------------------------------------------
+	double PIDCorrector::getNewPosition(){
+		double output = _Pout + _Iout + _Dout;
+
+	    return output;
+	}
+
 }//namespace

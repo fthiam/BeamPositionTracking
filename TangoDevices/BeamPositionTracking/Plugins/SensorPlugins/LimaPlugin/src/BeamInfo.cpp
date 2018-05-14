@@ -29,10 +29,10 @@ GlobalBeamInformation::GlobalBeamInformation(BeamSettings &ai_settings)
 {
 
 	if (m_settings.detectorPixelDepth == CHAR_DETECTOR_PIXEL_DEPTH){
-		m_imgCcd = cv::Mat(2,2,CV_8S, 0);
+		m_imgCcd = cv::Mat(2,2,CV_8U, 0);
 	}
 	else if (m_settings.detectorPixelDepth == SHORT_DETECTOR_PIXEL_DEPTH){
-		m_imgCcd = cv::Mat(2,2,CV_16S, 0);
+		m_imgCcd = cv::Mat(2,2,CV_16U, 0);
 	}
 	isImageCCDFound = false;
 	isBeamDetected = false;
@@ -132,18 +132,17 @@ bool BeamInfo::_updateImage(const int ai_width, const int ai_height, const void*
 
 				//Different types of image, depending on bit depth value :
 				if (m_settings.detectorPixelDepth == CHAR_DETECTOR_PIXEL_DEPTH)
-					w_imgCcd = cv::Mat(ai_height,  ai_width, CV_8S);
+					w_imgCcd = cv::Mat(ai_height,  ai_width, CV_8U);
 				else if (m_settings.detectorPixelDepth == SHORT_DETECTOR_PIXEL_DEPTH)
-					w_imgCcd = cv::Mat(ai_height,  ai_width, CV_16S);
+					w_imgCcd = cv::Mat(ai_height,  ai_width, CV_16U);
 			}
 			// Copy the buffer of the new image in the current matrix
 			aio_globalBeamInfo.isImageCCDFound = true;
-
 			//Different types of image, depending on bit depth value :
 			if (m_settings.detectorPixelDepth == CHAR_DETECTOR_PIXEL_DEPTH)
-				memcpy(w_imgCcd.data, ai_data, w_imgCcd.rows * w_imgCcd.cols * CV_8S);
+				memcpy(w_imgCcd.data, ai_data, w_imgCcd.rows * w_imgCcd.cols * sizeof(uchar));
 			else if (m_settings.detectorPixelDepth == SHORT_DETECTOR_PIXEL_DEPTH)
-				memcpy(w_imgCcd.data, ai_data, w_imgCcd.rows * w_imgCcd.cols * CV_16U);
+				memcpy(w_imgCcd.data, ai_data, w_imgCcd.rows * w_imgCcd.cols * sizeof(ushort));
 						
 			w_result = true;
 		}

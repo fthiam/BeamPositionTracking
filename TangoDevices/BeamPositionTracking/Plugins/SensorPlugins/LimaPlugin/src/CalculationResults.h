@@ -83,7 +83,7 @@ public:
 	// m_beamRectangle : bounding rectangle of the centroid largest contour
 	CvRect m_beamRectangle;
 
-	std::vector<unsigned char> tresholdedImg;
+	std::vector<unsigned char> thresholdedImg;
 
 	int m_imgHigh;
 

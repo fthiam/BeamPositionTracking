@@ -54,6 +54,10 @@ bool CalculationProcess::checkDetectorPixelDepth(){
 	return false;
 }
 
+void CalculationProcess::updatePercentageDetection(double newPercentageDetection){
+	_beamInfo.setBeamThresholdDetection(newPercentageDetection);
+}
+
 CalculationResults CalculationProcess::processBeam(){
 
 	calculBeam();
@@ -67,7 +71,7 @@ bool CalculationProcess::refreshBeam(){
 	Tango::DeviceAttribute imageAttr;
 
 	if (_beamInfo.settings().detectorPixelDepth == CHAR_DETECTOR_PIXEL_DEPTH){
-		Tango::DevVarCharArray* bufferAttr = NULL;
+		Tango::DevVarUCharArray* bufferAttr = NULL;
 		//First check that camera is running :
 		if(ensureCCDDeviceIsRunnning()){
 			imageAttr = m_deviceCCD->read_attribute("image");
@@ -119,6 +123,49 @@ bool CalculationProcess::ensureCCDDeviceIsRunnning(){
 	}
 }
 
+
+
+std::string CalculationProcess::type2str(int type) {
+  std::string r;
+  uchar depth = type & CV_MAT_DEPTH_MASK;
+
+  switch ( depth ) {
+    case CV_8U:  r = "8U"; break;
+    case CV_8S:  r = "8S"; break;
+    case CV_16U: r = "16U"; break;
+    case CV_16S: r = "16S"; break;
+    case CV_32S: r = "32S"; break;
+    case CV_32F: r = "32F"; break;
+    case CV_64F: r = "64F"; break;
+    default:     r = "User"; break;
+  }
+
+  return r;
+}
+
+
+double CalculationProcess::calculateSD(ushort data[], int arraySize)
+{
+    ushort sum = 0;
+    ushort mean = 0;
+    double standardDeviation = 0;
+
+    int i;
+
+    for(i = 0; i < arraySize; ++i)
+    {
+        sum += data[i];
+    }
+
+    mean = sum/arraySize;
+
+    for(i = 0; i < arraySize; ++i)
+        standardDeviation += pow(data[i] - mean, 2);
+
+    return sqrt(standardDeviation / arraySize);
+
+}
+
 void CalculationProcess::calculBeam()
 {
 	cv::Mat* w_CCd_tmp;
@@ -134,26 +181,56 @@ void CalculationProcess::calculBeam()
 	// Conversion threshold in % of the (max-min) to treshold value
 	const short BINARY_TRUE_VALUE = 1;
 
-    //Image binarisation, before threshold
-	cv::Mat w_imgCcd8UTMP;
-	cv::Mat resultTmp_imgBin = cv::Mat(0,0,CV_8UC1);
-	w_CCd.convertTo(w_imgCcd8UTMP, CV_8UC1);
+	//Convert image to 8 bit so that opencv can process it (threshold mandatory)
+	cv::Mat w_imgCcd8UTMP = cv::Mat(w_CCd.rows,w_CCd.cols,CV_8U);
 
-    //We need to know the new image threshold (0 - 255 now..)
+	cv::Mat resultTmp_imgBin = cv::Mat(0,0,CV_8UC1);
+
+	int count = 0;
+	double stdv;
+	double newMax1, newMin1;    
+	cv::minMaxLoc(w_CCd, &newMin1, &newMax1);
+	int arraySize = w_CCd.rows * w_CCd.cols;
+	ushort linearTable[arraySize];
+
+    if (type2str(w_CCd.type()) != "8U"){
+    	//For now, that mean it's a 16bit image 
+		for (int i = 0; i < w_CCd.rows; i++){
+			for (int j = 0; j < w_CCd.cols; j++){
+				ushort tmpShort;
+				tmpShort = ((ushort)w_CCd.at<ushort>(i,j));
+			 	count++;
+				linearTable[count] = tmpShort;
+				//Img rationalisation -> depending on its max value...
+				if ((newMax1>255) && (newMax1<=65535))
+			 		w_imgCcd8UTMP.at<uchar>(i,j) = tmpShort/(newMax1/255);
+			 	else
+			 		w_imgCcd8UTMP.at<uchar>(i,j) = tmpShort;
+			}
+		}
+    }
+    else{
+    	w_imgCcd8UTMP = w_CCd;
+   }
+   
+	stdv = calculateSD(linearTable, arraySize);
+
 	double newMax, newMin;    
 	cv::minMaxLoc(w_imgCcd8UTMP, &newMin, &newMax);
 
 	//Estimate threshold
-	double w_threshold = (newMax - newMin) * _beamInfo.getBeamThresholdDetection() + newMin;
+	double w_threshold = (newMax - newMin) *_beamInfo.getBeamThresholdDetection(); //+ newMin;
+	//Threshold image
 	cv::threshold( w_imgCcd8UTMP, resultTmp_imgBin, w_threshold, BINARY_TRUE_VALUE, cv::THRESH_BINARY );
 
     // Extract thresholded image into a vector
     w_result.m_imgHigh = resultTmp_imgBin.rows;
 	w_result.m_imgWidth = resultTmp_imgBin.cols;
-	w_result.tresholdedImg.clear();
+
+	w_result.thresholdedImg.clear();
 	for (int i = 0; i < w_result.m_imgHigh; i++){
 		for (int j = 0; j < w_result.m_imgWidth; j++){
-		 	w_result.tresholdedImg.push_back((uchar)resultTmp_imgBin.at<uchar>(i,j));
+		 	w_result.thresholdedImg.push_back((uchar)resultTmp_imgBin.at<uchar>(i,j));
 		}
 	}
 
@@ -203,6 +280,8 @@ void CalculationProcess::calculBeam()
 		else{
 			w_result.m_centroidCenterX = w_moments.m10 / w_moments.m00;
 			w_result.m_centroidCenterY = w_moments.m01 / w_moments.m00;
+
+		//	std::cout<<"w_result.m_centroidCenterX =  "<<w_result.m_centroidCenterX<<std::endl;
 		}
 	}
 

@@ -31,7 +31,7 @@ namespace BPTTaskManager{
 		double yBeamPostionPixels;
 		bool isBeamDetected;
 		bool isBeamInZone;
-		std::vector<unsigned char> tresholdedImg;
+		std::vector<unsigned char> thresholdedImg;
 		int imgHigh;
 		int imgWidth;
 	};
@@ -56,6 +56,7 @@ namespace BPTTaskManager{
 		bool isAxisCalibrated;
 		double currentPosition;
 		Tango::DevState currentState;
+		ushort axisThreshold;
 	};
 
 	struct ManagerDataPacket{
@@ -68,6 +69,12 @@ namespace BPTTaskManager{
 	struct Target{
 		short xTargetPoint;
 		short yTargetPoint;
+	};
+
+	struct FixedModeDefinition{
+		bool isFixedModeEnabled;
+		WarningZone warningZone;
+		Target target;
 	};
 }
 #endif

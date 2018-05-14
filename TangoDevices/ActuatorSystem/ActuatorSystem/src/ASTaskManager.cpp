@@ -34,6 +34,8 @@ std::string Y_AXIS_ID = "yAxis";
 #define kSET_X_AXIS_CALIBRATION_STATE	(yat::FIRST_USER_MSG + 1008)
 #define kSET_Y_AXIS_CALIBRATION_STATE	(yat::FIRST_USER_MSG + 1009)
 #define kMOVE_AXES						(yat::FIRST_USER_MSG + 1010)
+#define kSET_X_AXIS_POSITION			(yat::FIRST_USER_MSG + 1011)
+#define kSET_Y_AXIS_POSITION			(yat::FIRST_USER_MSG + 1012)
 
 int MAX_CALIBRATION_TRY_NB = 100;
 size_t DEFAULT_ACTUATOR_SYSTEM_TIMEOUT = 30000;
@@ -192,6 +194,30 @@ void ASTaskManager::process_message (yat::Message& _msg)
 	        _msg.detach_data(relativeMovement);  
 
 	        moveAxisPosition(*relativeMovement, Y_AXIS_ID);
+			m_movementStarted = false;
+	    }
+	    break;
+	    //- kSET_X_AXIS_POSITION ------------------
+	    case kSET_X_AXIS_POSITION:
+	    {
+	    	DEBUG_STREAM << "ASTaskManager::handle_message::kSET_X_AXIS_POSITION" << std::endl;
+
+	    	double *position;
+	        _msg.detach_data(position);  
+
+	        setAxisPosition(*position, X_AXIS_ID);
+			m_movementStarted = false;
+	    }
+	    break;
+	    //- kSET_Y_AXIS_POSITION ------------------
+	    case kSET_Y_AXIS_POSITION:
+	    {
+	    	DEBUG_STREAM << "ASTaskManager::handle_message::kMOVE_Y_AXIS" << std::endl;
+
+	    	double *position;
+	        _msg.detach_data(position);  
+
+	        setAxisPosition(*position, Y_AXIS_ID);
 			m_movementStarted = false;
 	    }
 	    break;
@@ -358,6 +384,38 @@ void ASTaskManager::i_moveYAxis(double movement){
 }
 //+----------------------------------------------------------------------------
 //
+// method :  BPTTaskManager::i_setXAxisPosition(double position)
+//
+//-----------------------------------------------------------------------------
+void ASTaskManager::i_setXAxisPosition(double position){
+    m_movementStarted = true; 
+	StateStatus movementStartStateStatus;
+	movementStartStateStatus.state = Tango::MOVING;
+	movementStartStateStatus.status = "Positionning X axis ...";
+	updateTaskStateStatus(movementStartStateStatus);
+	yat::Message *xAxisPositionMsg = new yat::Message(kSET_X_AXIS_POSITION, MAX_USER_PRIORITY, true);
+	xAxisPositionMsg->attach_data(position);
+	//Sending message synchronously
+	wait_msg_handled(xAxisPositionMsg, DEFAULT_ACTUATOR_SYSTEM_TIMEOUT);
+}
+//+----------------------------------------------------------------------------
+//
+// method :  BPTTaskManager::i_setYAxisPosition(double position)
+//
+//-----------------------------------------------------------------------------
+void ASTaskManager::i_setYAxisPosition(double position){
+    m_movementStarted = true; 
+	StateStatus movementStartStateStatus;
+	movementStartStateStatus.state = Tango::MOVING;
+	movementStartStateStatus.status = "Positionning Y axis ...";
+	updateTaskStateStatus(movementStartStateStatus);
+	yat::Message *yAxisPositionMsg = new yat::Message(kSET_Y_AXIS_POSITION, MAX_USER_PRIORITY, true);
+	yAxisPositionMsg->attach_data(position);
+	//Sending message synchronously
+	wait_msg_handled(yAxisPositionMsg, DEFAULT_ACTUATOR_SYSTEM_TIMEOUT);	
+}
+//+----------------------------------------------------------------------------
+//
 // method :  BPTTaskManager::i_stopAxes()
 //
 //-----------------------------------------------------------------------------
@@ -422,66 +480,90 @@ void ASTaskManager::moveAxisPosition(double relativeMovement, std::string axisId
 	double currentAxisPosition = 0;
 	double newPosition = 0;
 
+	if (relativeMovement != 0){
+
+		if(axisId == X_AXIS_ID){
+			if (m_simulatedMode)
+				m_simulatedXTranslation = relativeMovement;
+			else { // Act normal
+				// check new position - Setting lower/upper limit if out of bounds 
+				try{
+					currentAxisPosition = m_xActuatorPlugin->getAxisCurrentPosition();
+					newPosition = currentAxisPosition + relativeMovement;
+				}catch(...){
+					movement.state = Tango::FAULT;
+					movement.status = "Couldn't getAxisCurrentPosition while axis " + axisId + " positionning..";
+					updateTaskStateStatus(movement);
+					return;
+				}
+				setAxisPosition(newPosition, X_AXIS_ID);
+			}
+		}
+		else if (axisId == Y_AXIS_ID){	
+			if (m_simulatedMode)
+				m_simulatedYTranslation = relativeMovement;
+			else { // Act normal
+				// check new position - Setting lower or upper limit if out of bounds 
+				try{
+					currentAxisPosition = m_yActuatorPlugin->getAxisCurrentPosition();
+					newPosition = currentAxisPosition + relativeMovement;
+				}catch(...){
+					movement.state = Tango::FAULT;
+					movement.status = "Couldn't getAxisCurrentPosition while axis " + axisId + " positionning..";
+					updateTaskStateStatus(movement);
+					return;
+				}
+				setAxisPosition(newPosition, Y_AXIS_ID);
+			}
+		}
+	}
+}
+//+----------------------------------------------------------------------------
+//
+// method :  ASTaskManager::moveAxisPosition(double relativeMovement, std::string axisId)
+// 
+// description : 
+//
+//-----------------------------------------------------------------------------
+void ASTaskManager::setAxisPosition(double position, std::string axisId){
+	StateStatus movement;
+	movement.state = Tango::MOVING;
+	movement.status = "Movement on "+ axisId +" running";
+
+	updateTaskStateStatus(movement);
 
 	if(axisId == X_AXIS_ID){
-		if (m_simulatedMode)
-			m_simulatedXTranslation = relativeMovement;
-		else { // Act normal
-			// check new position - Setting lower or upper limit if out of bounds 
 			try{
-				currentAxisPosition = m_xActuatorPlugin->getAxisCurrentPosition();
-				newPosition = currentAxisPosition + relativeMovement;
-			}catch(...){
-				movement.state = Tango::FAULT;
-				movement.status = "Couldn't getAxisCurrentPosition while axis " + axisId + " positionning..";
-				updateTaskStateStatus(movement);
-				return;
-			}
-			try{
-				if (newPosition >= m_xAxisMaxPosition){
+				if (position >= m_xAxisMaxPosition){
 					m_axesPositionningState.xLimitReached = true;
 					m_axesPositionningState.xLimitStatus = "Upper limit has been reached on X axis !";
 					m_xActuatorPlugin->setAxisPosition(m_xAxisMaxPosition);
-				}else if (newPosition <= m_xAxisMinPosition){
+				}else if (position <= m_xAxisMinPosition){
 					m_axesPositionningState.xLimitReached = true;
 					m_axesPositionningState.xLimitStatus = "Lower limit has been reached on X axis !";
 					m_xActuatorPlugin->setAxisPosition(m_xAxisMinPosition);
-				}else if ((newPosition < m_xAxisMaxPosition) && (newPosition > m_xAxisMinPosition)){
+				}else if ((position < m_xAxisMaxPosition) && (position > m_xAxisMinPosition)){
 					m_axesPositionningState.xLimitReached = false;
-					m_xActuatorPlugin->setAxisPosition(newPosition);
+					m_xActuatorPlugin->setAxisPosition(position);
 				}
 			}catch(...){
 				movement.state = Tango::FAULT;
 				movement.status = "Couldn't move axis " + axisId;
 				updateTaskStateStatus(movement);
 			}
-		}
 	}
 	else if (axisId == Y_AXIS_ID){	
-		if (m_simulatedMode)
-			m_simulatedYTranslation = relativeMovement;
-		else { // Act normal
-			// check new position - Setting lower or upper limit if out of bounds 
 			try{
-				currentAxisPosition = m_yActuatorPlugin->getAxisCurrentPosition();
-				newPosition = currentAxisPosition + relativeMovement;
-			}catch(...){
-				movement.state = Tango::FAULT;
-				movement.status = "Couldn't getAxisCurrentPosition while axis " + axisId + " positionning..";
-				updateTaskStateStatus(movement);
-				return;
-			}
-			try{
-				if (newPosition >= m_yAxisMaxPosition){
+				if (position >= m_yAxisMaxPosition){
 					m_axesPositionningState.yLimitReached = true;
 					m_axesPositionningState.yLimitStatus = "Upper limit has been reached on Y axis !";
 					m_yActuatorPlugin->setAxisPosition(m_yAxisMaxPosition);
-				}else if (newPosition <= m_yAxisMinPosition){
+				}else if (position <= m_yAxisMinPosition){
 					m_axesPositionningState.yLimitReached = true;
 					m_axesPositionningState.yLimitStatus = "Lower limit has been reached on Y axis !";
 					m_yActuatorPlugin->setAxisPosition(m_yAxisMinPosition);
-				}else if((newPosition < m_yAxisMaxPosition) && (newPosition > m_yAxisMinPosition)){
-					m_yActuatorPlugin->setAxisPosition(newPosition);
+				}else if((position < m_yAxisMaxPosition) && (position > m_yAxisMinPosition)){
+					m_yActuatorPlugin->setAxisPosition(position);
 					m_axesPositionningState.yLimitReached = false;
 				}
 			}catch(...){
@@ -489,8 +571,8 @@ void ASTaskManager::moveAxisPosition(double relativeMovement, std::string axisId
 				movement.status = "Couldn't move axis " + axisId;
 				updateTaskStateStatus(movement);
 			}
-		}
 	}
+	
 }
 //+----------------------------------------------------------------------------
 //
@@ -584,6 +666,11 @@ void ASTaskManager::refreshTaskState(){
 	if((m_managerDataPacket.xStateStatus.state == Tango::INIT) || (m_managerDataPacket.yStateStatus.state == Tango::INIT)){
 		m_managerDataPacket.taskStateStatus.state = Tango::STANDBY;
 		m_managerDataPacket.taskStateStatus.status = "At least one axis is not initialize yet, system is not ready to operate !";
+	}
+	//Recently added -> To test !
+	if((m_managerDataPacket.xStateStatus.state == Tango::ALARM) || (m_managerDataPacket.yStateStatus.state == Tango::ALARM)){
+		m_managerDataPacket.taskStateStatus.state = Tango::STANDBY;
+		m_managerDataPacket.taskStateStatus.status = "At least one axis is in ALARM state, can't operate !";
 	}
 	if((m_managerDataPacket.xStateStatus.state == Tango::MOVING) || (m_managerDataPacket.yStateStatus.state == Tango::MOVING)){
 		m_managerDataPacket.taskStateStatus.state = Tango::MOVING;

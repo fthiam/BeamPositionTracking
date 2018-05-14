@@ -22,12 +22,14 @@ namespace BPTTaskManager{
 // ============================================================================
 // SOME USER DEFINED MESSAGES
 // ============================================================================
-#define kALIGNMENT_PROCESS  		(yat::FIRST_USER_MSG + 1001)
-#define kCALIBRATION 				(yat::FIRST_USER_MSG + 1002)
-#define kUPDATE_TRACKING_TARGET		(yat::FIRST_USER_MSG + 1003)
-#define kUPDATE_WARNING_ZONE		(yat::FIRST_USER_MSG + 1004)
-#define kTRACKING_MODE_OFF			(yat::FIRST_USER_MSG + 1005)
-#define kTRACKING_MODE_ON			(yat::FIRST_USER_MSG + 1006)
+#define kALIGNMENT_PROCESS  		 (yat::FIRST_USER_MSG + 1001)
+#define kCALIBRATION 				 (yat::FIRST_USER_MSG + 1002)
+#define kUPDATE_TRACKING_TARGET		 (yat::FIRST_USER_MSG + 1003)
+#define kUPDATE_WARNING_ZONE		 (yat::FIRST_USER_MSG + 1004)
+#define kTRACKING_MODE_OFF			 (yat::FIRST_USER_MSG + 1005)
+#define kTRACKING_MODE_ON			 (yat::FIRST_USER_MSG + 1006)
+#define kUPDATE_X_REG_THRESHOLD_ZONE (yat::FIRST_USER_MSG + 1007)
+#define kUPDATE_Y_REG_THRESHOLD_ZONE (yat::FIRST_USER_MSG + 1008)
 
 // - ActuatorSystem DeviceClass
 std::string ACTUATOR_SYSTEM_DEVICE_CLASS_STR = "ActuatorSystem";	
@@ -60,7 +62,7 @@ int MAX_CALIBRATION_TRY_NB = 100;
 BPTTaskManager::BPTTaskManager (Tango::DeviceImpl * devHost, yat4tango::DynamicAttributeManager* dynAttrManager, 
 											std::string pluginType, std::string pluginPath, std::string actuatorSystDeviceAdr,
 											PIDCoefficient xPidCoef, PIDCoefficient yPIDCoef,
-											double xAxisNbStepToCalibrate, double yAxisNbStepToCalibrate, int nbImgToAlign, int taskPeriod, bool simulatedMode)
+											double xAxisNbStepToCalibrate, double yAxisNbStepToCalibrate, int nbImgToAlign, int taskPeriod, bool simulatedMode, FixedModeDefinition fixedMode)
 :yat4tango::DeviceTask(devHost),
 m_dynAttrManager(dynAttrManager),
 m_hostDev(devHost), 
@@ -69,7 +71,8 @@ m_pluginPath(pluginPath),
 m_actuatorSystDeviceAdress(actuatorSystDeviceAdr), 
 m_nbImgToAlign(nbImgToAlign),
 m_taskPeriod(taskPeriod),
-m_simulatedMode(simulatedMode)
+m_simulatedMode(simulatedMode), 
+m_fixedModeDef(fixedMode)
 {
     //Initialize member variables
 	yat::MutexLock gardDataMutex(_dataMutex);
@@ -96,14 +99,19 @@ m_simulatedMode(simulatedMode)
 	m_yAxisData.axisInfo.stepNbToCalibrate = yAxisNbStepToCalibrate;
 	m_xAxisData.axisInfo.PIDCoefficients = xPidCoef;
 	m_yAxisData.axisInfo.PIDCoefficients = yPIDCoef;
-	m_xTargetedCentroid = 0;
-	m_yTargetedCentroid = 0;
-	m_warningZoneDefinition.xCenter = 0;
-	m_warningZoneDefinition.yCenter = 0;
-	m_warningZoneDefinition.radius = 0;
+	//init targets and warning zone to fixed values
+	m_xTargetedCentroid = m_fixedModeDef.target.xTargetPoint;
+	m_yTargetedCentroid = m_fixedModeDef.target.yTargetPoint;
+	m_warningZoneDefinition.xCenter = m_fixedModeDef.warningZone.xCenter;
+	m_warningZoneDefinition.yCenter = m_fixedModeDef.warningZone.yCenter;
+	m_warningZoneDefinition.radius = m_fixedModeDef.warningZone.radius;
 	m_isCalibrationRunning = false;
 	m_initCompleted = false;
 	m_stepAcknowleged = false;
+
+	//Default -> Cold beam ligne values :
+	m_xAxisData.axisThreshold = 8;
+	m_yAxisData.axisThreshold = 2;
 	initPIDCorrectors();
 }
 // ============================================================================
@@ -144,19 +152,15 @@ void BPTTaskManager::process_message (yat::Message& _msg)
 	        set_timeout_msg_period (500);
 	        set_periodic_msg_period(m_taskPeriod);
 	        enable_periodic_msg(false);  
-	        //Initialize plugin on sensor
-	        if (sensorPluginInitialisation()){
-	        	//try to start plugin then..
-		        startPlugin(); 
-	        	//Initialize proxy on ActuatorSystem...
-	        	if(actuatorSystemProxyInitialisation()){ 
-		        	//Initialize axes information
-		        	if(initializeAxesInformations()){
-			        	//Enable periodic
-						enable_periodic_msg(true);	
-						m_initCompleted = true; 
-					}
-		        }
+	        startPlugin(); 
+        	//Initialize proxy on ActuatorSystem...
+        	if(actuatorSystemProxyInitialisation()){ 
+	        	//Initialize axes information
+	        	if(initializeAxesInformations()){
+		        	//Enable periodic
+					enable_periodic_msg(true);	
+					m_initCompleted = true; 
+				}
 	        }
 	    } 
 
@@ -194,6 +198,11 @@ void BPTTaskManager::process_message (yat::Message& _msg)
 		        _msg.detach_data(target);      
 		        m_xTargetedCentroid = target->xTargetPoint;
 				m_yTargetedCentroid = target->yTargetPoint;
+				//To init new start position on PIDs
+				if(m_xAxisData.axisInfo.PIDCoefficients.isPIDEnabled)
+					resetXPIDCorrector();
+				if(m_yAxisData.axisInfo.PIDCoefficients.isPIDEnabled)
+					resetYPIDCorrector();
 	    	}
 	    	catch(...){
 	    		//NOOP
@@ -204,6 +213,11 @@ void BPTTaskManager::process_message (yat::Message& _msg)
 	    case kTRACKING_MODE_ON:
 	    {
 	        DEBUG_STREAM << "BPTTaskManager::handle_message::kTRACKING_MODE_ON" << std::endl;
+	        //To init new start position on PIDs
+	       	if(m_xAxisData.axisInfo.PIDCoefficients.isPIDEnabled)
+				resetXPIDCorrector();
+			if(m_yAxisData.axisInfo.PIDCoefficients.isPIDEnabled)
+				resetYPIDCorrector();
 	        //Active tracking mode!
 	        m_isTrackingModeRunning = true;
 	        m_sensorDataList.clear();
@@ -230,6 +244,36 @@ void BPTTaskManager::process_message (yat::Message& _msg)
 	        	WarningZone *newWarningZone;
 		        _msg.detach_data(newWarningZone);      
 		        m_warningZoneDefinition = *newWarningZone;
+		    }
+	    	catch(...){
+	    		//NOOP
+	    	}
+	    }
+	    break;
+	    //- kUPDATE_X_REG_THRESHOLD_ZONE ------------------
+	    case kUPDATE_X_REG_THRESHOLD_ZONE:
+	    {
+	        DEBUG_STREAM << "BPTTaskManager::handle_message::kUPDATE_X_REG_THRESHOLD_ZONE" << std::endl;
+
+	        try{
+	        	ushort *xRegThreshold;
+		        _msg.detach_data(xRegThreshold);      
+		        m_xAxisData.axisThreshold = *xRegThreshold;
+		    }
+	    	catch(...){
+	    		//NOOP
+	    	}
+	    }
+	    break;
+	    //- kUPDATE_Y_REG_THRESHOLD_ZONE ------------------
+	    case kUPDATE_Y_REG_THRESHOLD_ZONE:
+	    {
+	        DEBUG_STREAM << "BPTTaskManager::handle_message::kUPDATE_Y_REG_THRESHOLD_ZONE" << std::endl;
+
+	        try{
+	        	ushort *yRegThreshold;
+		        _msg.detach_data(yRegThreshold);      
+		        m_yAxisData.axisThreshold  = *yRegThreshold;
 		    }
 	    	catch(...){
 	    		//NOOP
@@ -335,24 +379,58 @@ void BPTTaskManager::i_turnTrackingModeOff(){
 //-----------------------------------------------------------------------------
 void BPTTaskManager::i_setTrackingTarget(Target target){
 	
-	yat::Message *updateTargetMsg = new yat::Message(kUPDATE_TRACKING_TARGET);
-	updateTargetMsg->attach_data(target);
-
-	post(updateTargetMsg);
+	//Just in case, not supposed to be called in fixed mode anyway
+	if(!m_fixedModeDef.isFixedModeEnabled){
+		yat::Message *updateTargetMsg = new yat::Message(kUPDATE_TRACKING_TARGET);
+		updateTargetMsg->attach_data(target);
+		post(updateTargetMsg);
+	}
 }
 //+----------------------------------------------------------------------------
 //
 // method :  BPTTaskManager::i_setWarningZone()
 //
-// description : Only to warning zone
+// description : Only to set warning zone
 //
 //-----------------------------------------------------------------------------
 void BPTTaskManager::i_setWarningZone(WarningZone newWarningZone){
 	
-	yat::Message *updateWarningMsg = new yat::Message(kUPDATE_WARNING_ZONE);
-	updateWarningMsg->attach_data(newWarningZone);
+	//Just in case, not supposed to be called in fixed mode anyway
+	if(!m_fixedModeDef.isFixedModeEnabled){
+		yat::Message *updateWarningMsg = new yat::Message(kUPDATE_WARNING_ZONE);
+		updateWarningMsg->attach_data(newWarningZone);
+		post(updateWarningMsg);
+	}
+}
 
-	post(updateWarningMsg);
+//+----------------------------------------------------------------------------
+//
+// method :  BPTTaskManager::i_setXAxisRegThreshold()
+//
+// description : Only to set x axis regulation threshold
+//
+//-----------------------------------------------------------------------------
+void BPTTaskManager::i_setXAxisRegThreshold(ushort newXRegThreshold){
+	
+	yat::Message *updateXRegThreshold = new yat::Message(kUPDATE_X_REG_THRESHOLD_ZONE);
+	updateXRegThreshold->attach_data(newXRegThreshold);
+
+	post(updateXRegThreshold);
+}
+
+//+----------------------------------------------------------------------------
+//
+// method :  BPTTaskManager::i_setYAxisRegThreshold()
+//
+// description : Only to set x axis regulation threshold
+//
+//-----------------------------------------------------------------------------
+void BPTTaskManager::i_setYAxisRegThreshold(ushort newYRegThreshold){
+	
+	yat::Message *updateYRegThreshold = new yat::Message(kUPDATE_Y_REG_THRESHOLD_ZONE);
+	updateYRegThreshold->attach_data(newYRegThreshold);
+
+	post(updateYRegThreshold);
 }
 
 //-----------------------------------------------------------------------------
@@ -382,10 +460,9 @@ ManagerDataPacket BPTTaskManager::i_getManagerDataPacket(){
 
 	beamDiagnostic.imgHigh = m_sensorData.imgHigh;
 	beamDiagnostic.imgWidth = m_sensorData.imgWidth;
-	beamDiagnostic.tresholdedImg.clear();
-	beamDiagnostic.tresholdedImg = m_sensorData.tresholdedImg;
+	beamDiagnostic.thresholdedImg.clear();
+	beamDiagnostic.thresholdedImg = m_sensorData.thresholdedImg;
 	
-
 	ManagerDataPacket dataPacketToReturn;
 	dataPacketToReturn.beamDiagnostic = beamDiagnostic;
 	dataPacketToReturn.xAxisData = m_xAxisData;
@@ -743,7 +820,7 @@ void BPTTaskManager::periodicJob(){
 					}else{
 						m_isTrackingModeRunning = false;
 					}
-				}else{
+				}else if ((actuatorSystemState != Tango::MOVING)){
 					m_isTrackingModeRunning = false;
 				}
 	        }else {
@@ -820,12 +897,50 @@ void BPTTaskManager::runBeamTracking(){
  	double errorXInput = m_xTargetedCentroid - meanXCentroid;
  	double errorYInput = m_yTargetedCentroid - meanYCentroid;
 
+
+ 	//If input error is below threshold, erase it...
+	if (std::abs(errorXInput) <= m_xAxisData.axisThreshold ){
+		errorXInput = 0;
+	}
+	if (std::abs(errorYInput) <= m_yAxisData.axisThreshold ){
+		errorYInput = 0;
+	}
+
  	//If PID is enabled, we use the corresponding corrector to estimate error
- 	if (m_xAxisData.axisInfo.PIDCoefficients.isPIDEnabled){
- 		errorXInput = m_pidXCorrector->getStepValue(errorXInput, (double)loopDuration.count());
+ 	if (m_xAxisData.axisInfo.PIDCoefficients.isPIDEnabled && (errorXInput != 0) ){
+ 		//Apply new step on PID corrector
+ 		m_pidXCorrector->newStepValue(errorXInput, 1);//(double)loopDuration.count());
+ 		//In PID mode, with an integral component, PID corrector will directly send new position back 
+ 		if (m_xAxisData.axisInfo.PIDCoefficients.I != 0){
+ 			//Write new position on actuator system (instead of an error input)
+ 			Tango::DeviceAttribute* positionToWrite = NULL;
+ 			std::cout<<"newStepValue = >  m_pidXCorrector->getNewPosition() = "<< m_pidXCorrector->getNewPosition()<<std::endl;
+			positionToWrite = new Tango::DeviceAttribute(ATTR_X_POSITION_STR, m_pidXCorrector->getNewPosition());
+			writeAttributeOnActuatorSystem(*positionToWrite);
+ 			//Error has been take care of
+ 			errorXInput = 0;
+ 			delete positionToWrite;
+ 		}
+ 		else
+ 			errorXInput = m_pidXCorrector->getDelta();
+
  	}
- 	if (m_yAxisData.axisInfo.PIDCoefficients.isPIDEnabled){
- 		errorYInput = m_pidYCorrector->getStepValue(errorYInput, (double)loopDuration.count());
+ 	if (m_yAxisData.axisInfo.PIDCoefficients.isPIDEnabled && (errorYInput != 0)){
+ 		//Apply new step on PID corrector
+ 		m_pidYCorrector->newStepValue(errorYInput, 1);//(double)loopDuration.count());
+ 		//In PID mode, with an integral component, PID corrector will directly send new position back 
+ 		if (m_yAxisData.axisInfo.PIDCoefficients.I != 0){
+ 			//Write new position on actuator system (instead of an error input)
+ 			Tango::DeviceAttribute* positionToWrite = NULL;
+ 			std::cout<<"newStepValue = >  m_pidYCorrector->getNewPosition() = "<< m_pidYCorrector->getNewPosition()<<std::endl;
+			positionToWrite = new Tango::DeviceAttribute(ATTR_Y_POSITION_STR, m_pidYCorrector->getNewPosition());
+			writeAttributeOnActuatorSystem(*positionToWrite);
+ 			//Error has been take care of
+ 			errorYInput = 0;
+ 			delete positionToWrite;
+ 		}
+ 		else
+ 			errorYInput = m_pidYCorrector->getDelta();
  	}
 
  	updateComputedTime((double)loopDuration.count());
@@ -833,10 +948,7 @@ void BPTTaskManager::runBeamTracking(){
  	// Will do transformation on axes (linear or not...)
  	Tango::DeviceData pixelsDeltasToSend;
  	std::vector<double> values;
-
- 	//Round pixel error!
- 	errorXInput = round(errorXInput);
- 	errorYInput = round(errorYInput);
+	
  	//Don't need to call AS if error on X and Y are null
  	if((errorXInput != 0) || (errorYInput != 0)){
 	 	values.push_back(errorXInput);
@@ -872,7 +984,7 @@ void BPTTaskManager::runBeamTracking(){
 	else if (m_simulatedMode){
 		StateStatus stateStatus;
 		stateStatus.state = Tango::RUNNING;
-		stateStatus.status = "New step in simulated mode \n-> nothing to move in this step! \nWaiting for acknowlegement ...";
+		stateStatus.status = "New step in simulated mode \n-> nothing to move in this step!\nPlease check Axes Regulation Thresholds values \nWaiting for acknowlegement ...";
 		updateTaskStateStatus(stateStatus);
 		waitForUserAcknowlegement();
 	}
@@ -949,6 +1061,34 @@ void BPTTaskManager::initPIDCorrectors(){
 		m_pidXCorrector = new PIDCorrector::PIDCorrector(m_xAxisData.axisInfo.PIDCoefficients.P, m_xAxisData.axisInfo.PIDCoefficients.I ,m_xAxisData.axisInfo.PIDCoefficients.D);
 	if(m_yAxisData.axisInfo.PIDCoefficients.isPIDEnabled)
 		m_pidYCorrector = new PIDCorrector::PIDCorrector(m_yAxisData.axisInfo.PIDCoefficients.P, m_yAxisData.axisInfo.PIDCoefficients.I ,m_yAxisData.axisInfo.PIDCoefficients.D);
+
+
+}	
+//+----------------------------------------------------------------------------
+//
+// method :  BPTTaskManager::resetXPIDCorrector()
+// 
+// description : 	will also reset positions in PIDs
+//
+//-----------------------------------------------------------------------------
+void BPTTaskManager::resetXPIDCorrector(){
+	//Refresh axes positions
+	refreshDataFromActuatorSystem();
+	if(m_pidXCorrector != NULL)
+		m_pidXCorrector->initCorrector(m_xAxisData.currentPosition);
+}
+//+----------------------------------------------------------------------------
+//
+// method :  BPTTaskManager::resetYPIDCorrector()
+// 
+// description : 	will also reset positions in PIDs
+//
+//-----------------------------------------------------------------------------
+void BPTTaskManager::resetYPIDCorrector(){
+	//Refresh axes positions
+	refreshDataFromActuatorSystem();
+	if(m_pidYCorrector != NULL)
+		m_pidYCorrector->initCorrector(m_yAxisData.currentPosition);
 }
 //+----------------------------------------------------------------------------
 //
@@ -960,9 +1100,14 @@ void BPTTaskManager::initPIDCorrectors(){
 void BPTTaskManager::startPlugin(){
 	StateStatus stateStatus;
 	try{
-		m_sensorPlugin->start(m_hostDev);
-		stateStatus.state = Tango::STANDBY;
-		stateStatus.status = "Initialisation done, ready to start ...";
+		if(m_sensorPlugin){
+			m_sensorPlugin->start(m_hostDev, m_fixedModeDef.isFixedModeEnabled);
+			stateStatus.state = Tango::STANDBY;
+			stateStatus.status = "Initialisation done, ready to start ...";
+		}else{
+			stateStatus.state = Tango::FAULT;
+			stateStatus.status = "Couldn't start plugin : plugin not correctly initialized";
+		}
 	}catch(Tango::DevFailed &df){
 		stateStatus.state = Tango::FAULT;
 		stateStatus.status = "Couldn't start plugin : caught DevFailed exception..";

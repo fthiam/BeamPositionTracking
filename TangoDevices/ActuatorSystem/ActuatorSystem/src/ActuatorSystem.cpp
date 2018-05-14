@@ -409,8 +409,10 @@ void ActuatorSystem::get_device_property()
 	//------------------------------------------------------------------
 	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "SimulatedAxis", "XAxisPluginType");
 	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "SimulatedAxis", "YAxisPluginType");
+	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "Precise/which/device", "XAxisPluginPath");
 	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "Precise/which/device", "YAxisPluginPath");
 	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "Precise/which/device", "XAxisDeviceAdress");
+	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "Precise/which/device", "YAxisDeviceAdress");
 	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "0", "XAxisMinPosition");
 	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "1", "XAxisMaxPosition");
 	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "0", "YAxisMinPosition");
@@ -454,6 +456,58 @@ void ActuatorSystem::read_attr_hardware(vector<long> &attr_list)
 	DEBUG_STREAM << "ActuatorSystem::read_attr_hardware(vector<long> &attr_list) entering... "<< endl;
 	//	Add your own code here
 }
+//+----------------------------------------------------------------------------
+//
+// method : 		ActuatorSystem::write_xPosition
+// 
+// description : 	Write xPosition attribute values to hardware.
+//
+//-----------------------------------------------------------------------------
+void ActuatorSystem::write_xPosition(Tango::WAttribute &attr)
+{
+	DEBUG_STREAM << "ActuatorSystem::write_xPosition(Tango::WAttribute &attr) entering... "<< endl;
+	double newXPosition;
+
+	attr.get_write_value(newXPosition);
+	if(_initDone){
+		if (_taskManager){
+			try{
+				set_state(Tango::MOVING);
+				set_status("Starting movement on x axis...");
+				_taskManager->i_setXAxisPosition(newXPosition);
+			}catch(Tango::DevFailed &df){
+				 RETHROW_DEVFAILED(df,"","","");
+			}
+		}
+	}
+}
+
+//+----------------------------------------------------------------------------
+//
+// method : 		ActuatorSystem::write_yPosition
+// 
+// description : 	Write yPosition attribute values to hardware.
+//
+//-----------------------------------------------------------------------------
+void ActuatorSystem::write_yPosition(Tango::WAttribute &attr)
+{
+	DEBUG_STREAM << "ActuatorSystem::write_yPosition(Tango::WAttribute &attr) entering... "<< endl;
+
+	double newYPosition;
+	attr.get_write_value(newYPosition);
+	if(_initDone){
+		if(_taskManager){
+			try{
+				set_state(Tango::MOVING);
+				set_status("Starting movement on y axis...");
+				_taskManager->i_setYAxisPosition(newYPosition);
+			}catch(Tango::DevFailed &df){
+				 RETHROW_DEVFAILED(df,"","","");
+			}
+		}
+	}
+}
+
 //+----------------------------------------------------------------------------
 //
 // method : 		ActuatorSystem::read_isSystemReady
@@ -871,6 +925,7 @@ std::string ActuatorSystem::check_properties(){
 
 	return PROPERTIES_OK;
 }
+
 
 
 

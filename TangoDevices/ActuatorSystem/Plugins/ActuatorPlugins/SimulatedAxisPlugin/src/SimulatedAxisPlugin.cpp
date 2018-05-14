@@ -143,8 +143,6 @@ void SimulatedAxisPlugin::moveAxisRelative(double relativeMovement)throw (Tango:
 		relativeMovmentData<<w_argsStepsSpeed;
 
 		sendCommandToActuatorSystem(CMD_MOVE_AXIS_RELATIVE_STR, true, relativeMovmentData);
-
-		//delete w_argsStepsSpeed;
 	}
 }
 // ============================================================================

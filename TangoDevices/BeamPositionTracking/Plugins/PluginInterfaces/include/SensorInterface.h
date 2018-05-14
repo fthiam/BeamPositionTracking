@@ -36,13 +36,13 @@ class SensorInterface : public yat4tango::DevicePlugIn
 		double yBeamPostionPixels;
 		bool isBeamDetected;
 		bool isBeamInZone;
-		std::vector<unsigned char> tresholdedImg;
+		std::vector<unsigned char> thresholdedImg;
 		int imgHigh;
 		int imgWidth;
 	};	
 
 
-	virtual void start(Tango::DeviceImpl * host_device)
+	virtual void start(Tango::DeviceImpl * host_device, bool fixMode)
 		throw (Tango::DevFailed) = 0;
 
 	virtual sensorData getSensorData()
