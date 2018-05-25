@@ -103,9 +103,10 @@ double GalilAxisPlugin::getAxisCurrentPosition()throw (Tango::DevFailed)
 // GalilAxisPlugin::setAxisPosition
 // ============================================================================
 void GalilAxisPlugin::setAxisPosition(double position)throw (Tango::DevFailed){
-	Tango::DeviceAttribute* positionAttribute;
+	
 	this->updateStateStatus();
-	if (_stateStatus.isConnexionOperational /*&& Normaly check if axe is moving, but its fake anyway*/){
+	if (_stateStatus.isConnexionOperational){
+		Tango::DeviceAttribute* positionAttribute;
 		_stateStatus.axisState = Tango::MOVING;
 		_stateStatus.axisStatus = "Movement is starting..";
 		positionAttribute = new Tango::DeviceAttribute(ATTR_POSITION_STR, position);

@@ -205,7 +205,6 @@ void LimaPlugin::write_callback_percentageDetection(yat4tango::DynamicAttributeW
 {
 	if(!m_fixMode){
 	    cbd.tga->get_write_value(m_percentageDetection);
-	    Tango::DeviceAttribute* attr;
 	    setPercentageDetection(m_percentageDetection);
 	}else{
 		THROW_DEVFAILED(

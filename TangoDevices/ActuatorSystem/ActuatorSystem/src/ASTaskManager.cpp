@@ -475,13 +475,12 @@ void ASTaskManager::moveAxisPosition(double relativeMovement, std::string axisId
 	StateStatus movement;
 	movement.state = Tango::MOVING;
 	movement.status = "Movement on "+ axisId +" running";
-
+	
 	updateTaskStateStatus(movement);
-	double currentAxisPosition = 0;
-	double newPosition = 0;
-
+	
 	if (relativeMovement != 0){
-
+		double currentAxisPosition = 0;
+		double newPosition = 0;
 		if(axisId == X_AXIS_ID){
 			if (m_simulatedMode)
 				m_simulatedXTranslation = relativeMovement;

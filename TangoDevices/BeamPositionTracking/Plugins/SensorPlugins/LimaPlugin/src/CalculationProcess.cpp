@@ -1,5 +1,5 @@
 //*****************************************************************************
-//* Copyright 2010 - 2013, Thales Optronique SAS - All rights reserved        *
+//* Copyrightï¿½2010 - 2013, Thales Optronique SAS - All rights reserved        *
 //*****************************************************************************
 //
 //=============================================================================
@@ -186,24 +186,25 @@ void CalculationProcess::calculBeam()
 
 	cv::Mat resultTmp_imgBin = cv::Mat(0,0,CV_8UC1);
 
-	int count = 0;
+	
 	double stdv;
-	double newMax1, newMin1;    
-	cv::minMaxLoc(w_CCd, &newMin1, &newMax1);
+	double inputImageMaxValue, inputImageMinValue;    
+	cv::minMaxLoc(w_CCd, &inputImageMinValue, &inputImageMaxValue);
 	int arraySize = w_CCd.rows * w_CCd.cols;
 	ushort linearTable[arraySize];
 
     if (type2str(w_CCd.type()) != "8U"){
     	//For now, that mean it's a 16bit image 
+		int count = 0;
 		for (int i = 0; i < w_CCd.rows; i++){
 			for (int j = 0; j < w_CCd.cols; j++){
 				ushort tmpShort;
 				tmpShort = ((ushort)w_CCd.at<ushort>(i,j));
 			 	count++;
 				linearTable[count] = tmpShort;
-				//Img rationalisation -> depending on its max value...
-				if ((newMax1>255) && (newMax1<=65535))
-			 		w_imgCcd8UTMP.at<uchar>(i,j) = tmpShort/(newMax1/255);
+				//Img rationalisation : Will depend on its max value...
+				if ((inputImageMaxValue>255) && (inputImageMaxValue<=65535))
+			 		w_imgCcd8UTMP.at<uchar>(i,j) = tmpShort/(inputImageMaxValue/255);
 			 	else
 			 		w_imgCcd8UTMP.at<uchar>(i,j) = tmpShort;
 			}

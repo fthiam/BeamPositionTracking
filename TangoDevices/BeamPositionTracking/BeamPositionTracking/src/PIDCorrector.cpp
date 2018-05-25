@@ -31,6 +31,10 @@ namespace PIDCorrector
 		_Kd = D; //derivative gain 
 		_dt = 0; //loop interval time
 		_pre_error = 0;
+		_Pout = 0 ;
+		_Iout = 0 ;
+		_Dout = 0 ;
+		_axisPosition = 0;
 	}
 	//--------------------------------------------------------
 	/**
@@ -71,7 +75,6 @@ namespace PIDCorrector
 
 		_dt = loopTime;
 	    // Proportional term
-	    _Pout = 0 ;
 	    _Pout = _Kp * error;
 	    // Integral term
 	    _axisPosition += _Ki *  error * _dt;;
