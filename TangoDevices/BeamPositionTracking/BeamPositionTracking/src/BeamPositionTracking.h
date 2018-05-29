@@ -6,7 +6,7 @@
 //
 // project :	BeamPositionTracking
 //
-// $Author:  $
+// $Author:  Thiam F.
 //
 // $Revision:  $
 // $Date:  $

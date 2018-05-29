@@ -6,7 +6,7 @@ BeamPositionTracking is an application based on Tango Devices (http://www.tango-
 ![BPTPrincipe](Doc/Images/BPTPrincipe.png)
 
 The back-end is made of two Tango Devices :
-* [ActuatorSystem](https://rawgit.com/fthiam/BeamPositionTracking/master/TangoDevices/BeamPositionTracking/BeamPositionTracking/doc/doc_html/index.html) :  This device's aim is to organize translations (X and Y axis) 
+* [ActuatorSystem](https://rawgit.com/fthiam/BeamPositionTracking/master/TangoDevices/ActuatorSystem/ActuatorSystem/doc/doc_html/index.html) :  This device's aim is to organize movements on X and Y axis
 ![classesAS](Doc/Images/classesAS.png)
 
 

@@ -6,7 +6,7 @@
 //
 // project :	ActuatorSystem
 //
-// $Author:  $
+// $Author:  Thiam F.
 //
 // $Revision:  $
 // $Date:  $
@@ -59,9 +59,7 @@ namespace ActuatorSystem_ns
 
 /**
  * Class Description:
- * This device should be used for BeamPositionTracking application only.
- *	This device's aim is to organize translations (X and Y axis).
- *	To use a translation with this device, make sure that a plugin already exists.
+ * This device will organize movements on X and Y axes
  */
 
 /*

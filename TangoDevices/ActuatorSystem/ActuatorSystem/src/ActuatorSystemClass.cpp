@@ -677,9 +677,7 @@ void ActuatorSystemClass::write_class_property()
 	//	Put Description
 	Tango::DbDatum	description("Description");
 	vector<string>	str_desc;
-	str_desc.push_back("This device should be used for BeamPositionTracking application only.");
-	str_desc.push_back("This device's aim is to organize translations (X and Y axis).");
-	str_desc.push_back("To use a translation with this device, make sure that a plugin already exists.");
+	str_desc.push_back("This device will organize movements on X and Y axes");
 	description << str_desc;
 	data.push_back(description);
 		

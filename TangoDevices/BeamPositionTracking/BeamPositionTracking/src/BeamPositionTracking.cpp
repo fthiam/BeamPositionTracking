@@ -11,7 +11,7 @@ static const char *RcsId = "$Id:  $";
 //
 // project :      TANGO Device Server
 //
-// $Author:  $
+// $Author:  Thiam F.
 //
 // $Revision:  $
 //

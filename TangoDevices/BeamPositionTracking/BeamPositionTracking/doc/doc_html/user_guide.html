@@ -49,7 +49,7 @@ User's Guide<Br>&nbsp;<Br> <Br><Br>
 BeamPositionTracking Class<Br>&nbsp;<Br></Td></Tr>
 </h1>
 <Tr><Td>
-<b><Center>Revision:  - Author:  <Br>
+<b><Center>Revision:  - Author: Thiam F. <Br>
  Implemented in C++
 </Center></b>
 </Td></Tr>
@@ -63,8 +63,8 @@ BeamPositionTracking Class<Br>&nbsp;<Br></Td></Tr>
 <Br>&nbsp;<Br><Br>&nbsp;<Br>
 <h2>Introduction:</h2>
 <ul>
-	BeamPositionTracking is a device that will be used on beamlines to enslave the beam position on a specific target. In order to move the beam centroid, 
-BeamPositionTracking device will need to work with ActuatorSystem (pleaser refer to AS documentation). 
+	BeamPositionTracking is a device that will be used on beamlines to enslave the beam position on a specific target. In order to move the beam centroid,
+BeamPositionTracking device will need to work with ActuatorSystem (pleaser refer to AS documentation).
 Asservissement loop is based on a PID algorithm (on per axis).
 It will be able to work with differents types of axes devices, and several detectors such as Lima detector and XBPM using Yat4Tango::Plugin technology.<Br>
 </ul>
@@ -91,8 +91,7 @@ It will be able to work with differents types of axes devices, and several detec
 
 </b>
 </center>
-
-
+This device will estimate new centroids using it's sensor. At every step it will estimate a new axis position using a PID corrector. 
 <Center>
 
 <Br>

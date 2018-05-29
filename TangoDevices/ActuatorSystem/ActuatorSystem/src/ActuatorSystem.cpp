@@ -11,7 +11,7 @@ static const char *RcsId = "$Id:  $";
 //
 // project :      TANGO Device Server
 //
-// $Author:  $
+// $Author:  Thiam F.
 //
 // $Revision:  $
 //
@@ -928,6 +928,7 @@ std::string ActuatorSystem::check_properties(){
 
 	return PROPERTIES_OK;
 }
+
 
 
 
