@@ -6,8 +6,8 @@ BeamPositionTracking is an application based on Tango Devices (http://www.tango-
 ![BPTPrincipe](Doc/Images/BPTPrincipe.png)
 
 The back-end is made of two Tango Devices :
-* [ActuatorSystem](TangoDevices/ActuatorSystem/ActuatorSystem/doc/doc_html/index.html) :  This device's aim is to organize translations (X and Y axis). 
-* [BeamPositionTracking](TangoDevices/BeamPositionTracking/BeamPositionTracking/doc/doc_html/index.html): This device will estimate new centroids using it's sensor. At every step it will estimate a new axis position using a PID corrector.
+* [ActuatorSystem](https://rawgit.com/fthiam/BeamPositionTracking/master/TangoDevices/BeamPositionTracking/BeamPositionTracking/doc/doc_html/index.html) :  This device's aim is to organize translations (X and Y axis). 
+* [BeamPositionTracking](https://rawgit.com/fthiam/BeamPositionTracking/master/TangoDevices/BeamPositionTracking/BeamPositionTracking/doc/doc_html/index.html): This device will estimate new centroids using it's sensor. At every step it will estimate a new axis position using a PID corrector.
 
 Theses devices will be able to work with differents types of sub-devices for translations and several detectors such as Lima detector and XBPM using Yat4Tango::Plugin technology.
 
