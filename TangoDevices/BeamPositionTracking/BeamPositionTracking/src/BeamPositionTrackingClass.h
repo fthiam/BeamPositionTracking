@@ -230,10 +230,10 @@ public:
 
 
 
-class StopBeamTrackingClass : public Tango::Command
+class StopBeamTrackingCmd : public Tango::Command
 {
 public:
-	StopBeamTrackingClass(const char   *name,
+	StopBeamTrackingCmd(const char   *name,
 	               Tango::CmdArgType in,
 				   Tango::CmdArgType out,
 				   const char        *in_desc,
@@ -241,11 +241,11 @@ public:
 				   Tango::DispLevel  level)
 	:Command(name,in,out,in_desc,out_desc, level)	{};
 
-	StopBeamTrackingClass(const char   *name,
+	StopBeamTrackingCmd(const char   *name,
 	               Tango::CmdArgType in,
 				   Tango::CmdArgType out)
 	:Command(name,in,out)	{};
-	~StopBeamTrackingClass() {};
+	~StopBeamTrackingCmd() {};
 	
 	virtual CORBA::Any *execute (Tango::DeviceImpl *dev, const CORBA::Any &any);
 	virtual bool is_allowed (Tango::DeviceImpl *dev, const CORBA::Any &any)
@@ -254,10 +254,10 @@ public:
 
 
 
-class StartBeamTrackingClass : public Tango::Command
+class StartBeamTrackingCmd : public Tango::Command
 {
 public:
-	StartBeamTrackingClass(const char   *name,
+	StartBeamTrackingCmd(const char   *name,
 	               Tango::CmdArgType in,
 				   Tango::CmdArgType out,
 				   const char        *in_desc,
@@ -265,11 +265,11 @@ public:
 				   Tango::DispLevel  level)
 	:Command(name,in,out,in_desc,out_desc, level)	{};
 
-	StartBeamTrackingClass(const char   *name,
+	StartBeamTrackingCmd(const char   *name,
 	               Tango::CmdArgType in,
 				   Tango::CmdArgType out)
 	:Command(name,in,out)	{};
-	~StartBeamTrackingClass() {};
+	~StartBeamTrackingCmd() {};
 	
 	virtual CORBA::Any *execute (Tango::DeviceImpl *dev, const CORBA::Any &any);
 	virtual bool is_allowed (Tango::DeviceImpl *dev, const CORBA::Any &any)
@@ -278,10 +278,10 @@ public:
 
 
 
-class ActuatorSystemCalibrationClass : public Tango::Command
+class ActuatorSystemCalibrationCmd : public Tango::Command
 {
 public:
-	ActuatorSystemCalibrationClass(const char   *name,
+	ActuatorSystemCalibrationCmd(const char   *name,
 	               Tango::CmdArgType in,
 				   Tango::CmdArgType out,
 				   const char        *in_desc,
@@ -289,11 +289,11 @@ public:
 				   Tango::DispLevel  level)
 	:Command(name,in,out,in_desc,out_desc, level)	{};
 
-	ActuatorSystemCalibrationClass(const char   *name,
+	ActuatorSystemCalibrationCmd(const char   *name,
 	               Tango::CmdArgType in,
 				   Tango::CmdArgType out)
 	:Command(name,in,out)	{};
-	~ActuatorSystemCalibrationClass() {};
+	~ActuatorSystemCalibrationCmd() {};
 	
 	virtual CORBA::Any *execute (Tango::DeviceImpl *dev, const CORBA::Any &any);
 	virtual bool is_allowed (Tango::DeviceImpl *dev, const CORBA::Any &any)

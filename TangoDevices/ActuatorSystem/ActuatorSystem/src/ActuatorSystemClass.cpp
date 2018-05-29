@@ -362,40 +362,65 @@ void ActuatorSystemClass::attribute_factory(vector<Tango::Attr *> &att_list)
 {
 	//	Attribute : xPosition
 	xPositionAttrib	*x_position = new xPositionAttrib();
+	Tango::UserDefaultAttrProp	x_position_prop;
+	x_position_prop.set_description("Position of X axis (in user unit)");
+	x_position->set_default_properties(x_position_prop);
 	att_list.push_back(x_position);
 
 	//	Attribute : yPosition
 	yPositionAttrib	*y_position = new yPositionAttrib();
+	Tango::UserDefaultAttrProp	y_position_prop;
+	y_position_prop.set_description("Position of Y axis (in user unit)");
+	y_position->set_default_properties(y_position_prop);
 	att_list.push_back(y_position);
 
 	//	Attribute : xState
 	xStateAttrib	*x_state = new xStateAttrib();
+	Tango::UserDefaultAttrProp	x_state_prop;
+	x_state_prop.set_description("State of X axis");
+	x_state->set_default_properties(x_state_prop);
 	att_list.push_back(x_state);
 
 	//	Attribute : yState
 	yStateAttrib	*y_state = new yStateAttrib();
+	Tango::UserDefaultAttrProp	y_state_prop;
+	y_state_prop.set_description("State of Y axis ");
+	y_state->set_default_properties(y_state_prop);
 	att_list.push_back(y_state);
 
 	//	Attribute : isXLinear
 	isXLinearAttrib	*is_xlinear = new isXLinearAttrib();
+	Tango::UserDefaultAttrProp	is_xlinear_prop;
+	is_xlinear_prop.set_description("If true the xLinearRatio attribute can be written by BeamPositionTracking device if user call ");
+	is_xlinear->set_default_properties(is_xlinear_prop);
 	att_list.push_back(is_xlinear);
 
 	//	Attribute : isYLinear
 	isYLinearAttrib	*is_ylinear = new isYLinearAttrib();
+	Tango::UserDefaultAttrProp	is_ylinear_prop;
+	is_ylinear_prop.set_description("If true the yLinearRatio attribute can be written by BeamPositionTracking device if user call ");
+	is_ylinear->set_default_properties(is_ylinear_prop);
 	att_list.push_back(is_ylinear);
 
 	//	Attribute : isXCalibrated
 	isXCalibratedAttrib	*is_xcalibrated = new isXCalibratedAttrib();
+	Tango::UserDefaultAttrProp	is_xcalibrated_prop;
+	is_xcalibrated_prop.set_description("To confirm that X Axis is properly configured, ready to move");
+	is_xcalibrated->set_default_properties(is_xcalibrated_prop);
 	att_list.push_back(is_xcalibrated);
 
 	//	Attribute : isYCalibrated
 	isYCalibratedAttrib	*is_ycalibrated = new isYCalibratedAttrib();
+	Tango::UserDefaultAttrProp	is_ycalibrated_prop;
+	is_ycalibrated_prop.set_description("To confirm that Y Axis is properly configured, ready to move");
+	is_ycalibrated->set_default_properties(is_ycalibrated_prop);
 	att_list.push_back(is_ycalibrated);
 
 	//	Attribute : xLinearRatio
 	xLinearRatioAttrib	*x_linear_ratio = new xLinearRatioAttrib();
 	Tango::UserDefaultAttrProp	x_linear_ratio_prop;
 	x_linear_ratio_prop.set_unit(" ");
+	x_linear_ratio_prop.set_description("Linear ratio for X axis");
 	x_linear_ratio->set_default_properties(x_linear_ratio_prop);
 	x_linear_ratio->set_memorized();
 	x_linear_ratio->set_memorized_init(true);
@@ -405,6 +430,7 @@ void ActuatorSystemClass::attribute_factory(vector<Tango::Attr *> &att_list)
 	yLinearRatioAttrib	*y_linear_ratio = new yLinearRatioAttrib();
 	Tango::UserDefaultAttrProp	y_linear_ratio_prop;
 	y_linear_ratio_prop.set_unit(" ");
+	y_linear_ratio_prop.set_description("Linear ratio for Y axis");
 	y_linear_ratio->set_default_properties(y_linear_ratio_prop);
 	y_linear_ratio->set_memorized();
 	y_linear_ratio->set_memorized_init(true);
@@ -412,6 +438,9 @@ void ActuatorSystemClass::attribute_factory(vector<Tango::Attr *> &att_list)
 
 	//	Attribute : isSystemReady
 	isSystemReadyAttrib	*is_system_ready = new isSystemReadyAttrib();
+	Tango::UserDefaultAttrProp	is_system_ready_prop;
+	is_system_ready_prop.set_description("Is the system ready to operate ");
+	is_system_ready->set_default_properties(is_system_ready_prop);
 	att_list.push_back(is_system_ready);
 
 	//	End of Automatic code generation
@@ -438,6 +467,7 @@ void ActuatorSystemClass::get_class_property()
 	if (Tango::Util::instance()->_UseDb==true)
 		get_db_class()->get_property(cl_prop);
 	Tango::DbDatum	def_prop;
+	int	i = -1;
 
 
 	//	End of Automatic code generation
@@ -465,7 +495,7 @@ void ActuatorSystemClass::set_default_property()
 	//	Set Default Class Properties
 	//	Set Default Device Properties
 	prop_name = "XAxisPluginPath";
-	prop_desc = "";
+	prop_desc = "Path to the X Axis plugin library";
 	prop_def  = "";
 	vect_data.clear();
 	if (prop_def.length()>0)
@@ -479,7 +509,7 @@ void ActuatorSystemClass::set_default_property()
 		add_wiz_dev_prop(prop_name, prop_desc);
 
 	prop_name = "XAxisPluginType";
-	prop_desc = "";
+	prop_desc = "X Axis plugin type";
 	prop_def  = "";
 	vect_data.clear();
 	if (prop_def.length()>0)
@@ -493,7 +523,7 @@ void ActuatorSystemClass::set_default_property()
 		add_wiz_dev_prop(prop_name, prop_desc);
 
 	prop_name = "YAxisPluginType";
-	prop_desc = "";
+	prop_desc = "Y Axis plugin type";
 	prop_def  = "";
 	vect_data.clear();
 	if (prop_def.length()>0)
@@ -507,7 +537,7 @@ void ActuatorSystemClass::set_default_property()
 		add_wiz_dev_prop(prop_name, prop_desc);
 
 	prop_name = "YAxisPluginPath";
-	prop_desc = "";
+	prop_desc = "Path to the Y Axis plugin library";
 	prop_def  = "";
 	vect_data.clear();
 	if (prop_def.length()>0)
@@ -521,7 +551,7 @@ void ActuatorSystemClass::set_default_property()
 		add_wiz_dev_prop(prop_name, prop_desc);
 
 	prop_name = "XAxisDeviceAdress";
-	prop_desc = "";
+	prop_desc = "X Axis Tango device adress";
 	prop_def  = "";
 	vect_data.clear();
 	if (prop_def.length()>0)
@@ -535,7 +565,7 @@ void ActuatorSystemClass::set_default_property()
 		add_wiz_dev_prop(prop_name, prop_desc);
 
 	prop_name = "YAxisDeviceAdress";
-	prop_desc = "";
+	prop_desc = "Y Axis Tango device adress";
 	prop_def  = "";
 	vect_data.clear();
 	if (prop_def.length()>0)
@@ -649,8 +679,7 @@ void ActuatorSystemClass::write_class_property()
 	vector<string>	str_desc;
 	str_desc.push_back("This device should be used for BeamPositionTracking application only.");
 	str_desc.push_back("This device's aim is to organize translations (X and Y axis).");
-	str_desc.push_back("To use a specific translation (or a rotation) on this device, make sure that a plugin exists already...");
-	str_desc.push_back("Will also apply ratios (calibration results) on those axes.");
+	str_desc.push_back("To use a translation with this device, make sure that a plugin already exists.");
 	description << str_desc;
 	data.push_back(description);
 		

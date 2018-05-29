@@ -47,7 +47,7 @@ static const char *HttpServer = "http://www.esrf.fr/computing/cs/tango/tango_doc
 extern "C" {
 #ifdef WIN32
 
-__declspec(dllexport)
+	__declspec(dllexport)
 
 #endif
 
@@ -61,6 +61,72 @@ namespace BeamPositionTracking_ns
 {
 //+----------------------------------------------------------------------------
 //
+// method : 		StopBeamTrackingCmd::execute()
+// 
+// description : 	method to trigger the execution of the command.
+//                PLEASE DO NOT MODIFY this method core without pogo   
+//
+// in : - device : The device on which the command must be executed
+//		- in_any : The command input data
+//
+// returns : The command output data (packed in the Any object)
+//
+//-----------------------------------------------------------------------------
+	CORBA::Any *StopBeamTrackingCmd::execute(Tango::DeviceImpl *device,const CORBA::Any &in_any)
+	{
+
+	cout2 << "StopBeamTrackingCmd::execute(): arrived" << endl;
+
+	((static_cast<BeamPositionTracking *>(device))->stop_beam_tracking());
+	return new CORBA::Any();
+}
+
+//+----------------------------------------------------------------------------
+//
+// method : 		StartBeamTrackingCmd::execute()
+// 
+// description : 	method to trigger the execution of the command.
+//                PLEASE DO NOT MODIFY this method core without pogo   
+//
+// in : - device : The device on which the command must be executed
+//		- in_any : The command input data
+//
+// returns : The command output data (packed in the Any object)
+//
+//-----------------------------------------------------------------------------
+	CORBA::Any *StartBeamTrackingCmd::execute(Tango::DeviceImpl *device,const CORBA::Any &in_any)
+	{
+
+	cout2 << "StartBeamTrackingCmd::execute(): arrived" << endl;
+
+	((static_cast<BeamPositionTracking *>(device))->start_beam_tracking());
+	return new CORBA::Any();
+}
+
+//+----------------------------------------------------------------------------
+//
+// method : 		ActuatorSystemCalibrationCmd::execute()
+// 
+// description : 	method to trigger the execution of the command.
+//                PLEASE DO NOT MODIFY this method core without pogo   
+//
+// in : - device : The device on which the command must be executed
+//		- in_any : The command input data
+//
+// returns : The command output data (packed in the Any object)
+//
+//-----------------------------------------------------------------------------
+	CORBA::Any *ActuatorSystemCalibrationCmd::execute(Tango::DeviceImpl *device,const CORBA::Any &in_any)
+	{
+
+	cout2 << "ActuatorSystemCalibrationCmd::execute(): arrived" << endl;
+
+	((static_cast<BeamPositionTracking *>(device))->actuator_system_calibration());
+	return new CORBA::Any();
+}
+
+//+----------------------------------------------------------------------------
+//
 // method : 		AcknowlegeStepCmd::execute()
 // 
 // description : 	method to trigger the execution of the command.
@@ -72,8 +138,8 @@ namespace BeamPositionTracking_ns
 // returns : The command output data (packed in the Any object)
 //
 //-----------------------------------------------------------------------------
-CORBA::Any *AcknowlegeStepCmd::execute(Tango::DeviceImpl *device,const CORBA::Any &in_any)
-{
+	CORBA::Any *AcknowlegeStepCmd::execute(Tango::DeviceImpl *device,const CORBA::Any &in_any)
+	{
 
 	cout2 << "AcknowlegeStepCmd::execute(): arrived" << endl;
 
@@ -82,71 +148,8 @@ CORBA::Any *AcknowlegeStepCmd::execute(Tango::DeviceImpl *device,const CORBA::An
 }
 
 
-//+----------------------------------------------------------------------------
-//
-// method : 		ActuatorSystemCalibrationClass::execute()
-// 
-// description : 	method to trigger the execution of the command.
-//                PLEASE DO NOT MODIFY this method core without pogo   
-//
-// in : - device : The device on which the command must be executed
-//		- in_any : The command input data
-//
-// returns : The command output data (packed in the Any object)
-//
-//-----------------------------------------------------------------------------
-CORBA::Any *ActuatorSystemCalibrationClass::execute(Tango::DeviceImpl *device,const CORBA::Any &in_any)
-{
 
-	cout2 << "ActuatorSystemCalibrationClass::execute(): arrived" << endl;
 
-	((static_cast<BeamPositionTracking *>(device))->actuator_system_calibration());
-	return new CORBA::Any();
-}
-
-//+----------------------------------------------------------------------------
-//
-// method : 		StartBeamTrackingClass::execute()
-// 
-// description : 	method to trigger the execution of the command.
-//                PLEASE DO NOT MODIFY this method core without pogo   
-//
-// in : - device : The device on which the command must be executed
-//		- in_any : The command input data
-//
-// returns : The command output data (packed in the Any object)
-//
-//-----------------------------------------------------------------------------
-CORBA::Any *StartBeamTrackingClass::execute(Tango::DeviceImpl *device,const CORBA::Any &in_any)
-{
-
-	cout2 << "StartBeamTrackingClass::execute(): arrived" << endl;
-
-	((static_cast<BeamPositionTracking *>(device))->start_beam_tracking());
-	return new CORBA::Any();
-}
-
-//+----------------------------------------------------------------------------
-//
-// method : 		StopBeamTrackingClass::execute()
-// 
-// description : 	method to trigger the execution of the command.
-//                PLEASE DO NOT MODIFY this method core without pogo   
-//
-// in : - device : The device on which the command must be executed
-//		- in_any : The command input data
-//
-// returns : The command output data (packed in the Any object)
-//
-//-----------------------------------------------------------------------------
-CORBA::Any *StopBeamTrackingClass::execute(Tango::DeviceImpl *device,const CORBA::Any &in_any)
-{
-
-	cout2 << "StopBeamTrackingClass::execute(): arrived" << endl;
-
-	((static_cast<BeamPositionTracking *>(device))->stop_beam_tracking());
-	return new CORBA::Any();
-}
 
 
 //
@@ -165,17 +168,17 @@ BeamPositionTrackingClass *BeamPositionTrackingClass::_instance = NULL;
 // in : - s : The class name
 //
 //-----------------------------------------------------------------------------
-BeamPositionTrackingClass::BeamPositionTrackingClass(string &s):DeviceClass(s)
-{
+	BeamPositionTrackingClass::BeamPositionTrackingClass(string &s):DeviceClass(s)
+	{
 
-	cout2 << "Entering BeamPositionTrackingClass constructor" << endl;
-	set_default_property();
-	get_class_property();
-	write_class_property();
-	
-	cout2 << "Leaving BeamPositionTrackingClass constructor" << endl;
+		cout2 << "Entering BeamPositionTrackingClass constructor" << endl;
+		set_default_property();
+		get_class_property();
+		write_class_property();
 
-}
+		cout2 << "Leaving BeamPositionTrackingClass constructor" << endl;
+
+	}
 //+----------------------------------------------------------------------------
 //
 // method : 		BeamPositionTrackingClass::~BeamPositionTrackingClass()
@@ -183,10 +186,10 @@ BeamPositionTrackingClass::BeamPositionTrackingClass(string &s):DeviceClass(s)
 // description : 	destructor for the BeamPositionTrackingClass
 //
 //-----------------------------------------------------------------------------
-BeamPositionTrackingClass::~BeamPositionTrackingClass()
-{
-	_instance = NULL;
-}
+	BeamPositionTrackingClass::~BeamPositionTrackingClass()
+	{
+		_instance = NULL;
+	}
 
 //+----------------------------------------------------------------------------
 //
@@ -235,17 +238,17 @@ BeamPositionTrackingClass *BeamPositionTrackingClass::instance()
 //-----------------------------------------------------------------------------
 void BeamPositionTrackingClass::command_factory()
 {
-	command_list.push_back(new ActuatorSystemCalibrationClass("ActuatorSystemCalibration",
+	command_list.push_back(new ActuatorSystemCalibrationCmd("ActuatorSystemCalibration",
 		Tango::DEV_VOID, Tango::DEV_VOID,
 		"",
 		"",
 		Tango::OPERATOR));
-	command_list.push_back(new StartBeamTrackingClass("StartBeamTracking",
+	command_list.push_back(new StartBeamTrackingCmd("StartBeamTracking",
 		Tango::DEV_VOID, Tango::DEV_VOID,
 		"",
 		"",
 		Tango::OPERATOR));
-	command_list.push_back(new StopBeamTrackingClass("StopBeamTracking",
+	command_list.push_back(new StopBeamTrackingCmd("StopBeamTracking",
 		Tango::DEV_VOID, Tango::DEV_VOID,
 		"",
 		"",
@@ -344,7 +347,7 @@ void BeamPositionTrackingClass::device_factory(const Tango::DevVarStringArray *d
 	//	End of Automatic code generation
 	//-------------------------------------------------------------
 
-}
+				}
 //+----------------------------------------------------------------------------
 //	Method: BeamPositionTrackingClass::attribute_factory(vector<Tango::Attr *> &att_list)
 //-----------------------------------------------------------------------------
@@ -363,6 +366,7 @@ void BeamPositionTrackingClass::attribute_factory(vector<Tango::Attr *> &att_lis
 	xAxisTargetAttrib	*x_axis_target = new xAxisTargetAttrib();
 	Tango::UserDefaultAttrProp	x_axis_target_prop;
 	x_axis_target_prop.set_unit("Pixels");
+	x_axis_target_prop.set_description("Define xAxis target in pixels");
 	x_axis_target->set_default_properties(x_axis_target_prop);
 	att_list.push_back(x_axis_target);
 
@@ -370,6 +374,7 @@ void BeamPositionTrackingClass::attribute_factory(vector<Tango::Attr *> &att_lis
 	yAxisTargetAttrib	*y_axis_target = new yAxisTargetAttrib();
 	Tango::UserDefaultAttrProp	y_axis_target_prop;
 	y_axis_target_prop.set_unit("Pixels");
+	y_axis_target_prop.set_description("Define yAxis target in pixels");
 	y_axis_target->set_default_properties(y_axis_target_prop);
 	att_list.push_back(y_axis_target);
 
@@ -377,6 +382,7 @@ void BeamPositionTrackingClass::attribute_factory(vector<Tango::Attr *> &att_lis
 	xAxisCurrentBeamPositionAttrib	*x_axis_current_beam_position = new xAxisCurrentBeamPositionAttrib();
 	Tango::UserDefaultAttrProp	x_axis_current_beam_position_prop;
 	x_axis_current_beam_position_prop.set_unit("Pixels");
+	x_axis_current_beam_position_prop.set_description("Read current beam position on x axis");
 	x_axis_current_beam_position->set_default_properties(x_axis_current_beam_position_prop);
 	att_list.push_back(x_axis_current_beam_position);
 
@@ -384,19 +390,29 @@ void BeamPositionTrackingClass::attribute_factory(vector<Tango::Attr *> &att_lis
 	yAxisCurrentBeamPositionAttrib	*y_axis_current_beam_position = new yAxisCurrentBeamPositionAttrib();
 	Tango::UserDefaultAttrProp	y_axis_current_beam_position_prop;
 	y_axis_current_beam_position_prop.set_unit("Pixels");
+	y_axis_current_beam_position_prop.set_description("Read current beam position on y axis");
 	y_axis_current_beam_position->set_default_properties(y_axis_current_beam_position_prop);
 	att_list.push_back(y_axis_current_beam_position);
 
 	//	Attribute : warningZoneXCenter
 	warningZoneXCenterAttrib	*warning_zone_xcenter = new warningZoneXCenterAttrib();
+	Tango::UserDefaultAttrProp	warning_zone_xcenter_prop;
+	warning_zone_xcenter_prop.set_description("Define the center of warning zone on X Axis");
+	warning_zone_xcenter->set_default_properties(warning_zone_xcenter_prop);
 	att_list.push_back(warning_zone_xcenter);
 
 	//	Attribute : warningZoneYCenter
 	warningZoneYCenterAttrib	*warning_zone_ycenter = new warningZoneYCenterAttrib();
+	Tango::UserDefaultAttrProp	warning_zone_ycenter_prop;
+	warning_zone_ycenter_prop.set_description("Define the center of warning zone on Y Axis");
+	warning_zone_ycenter->set_default_properties(warning_zone_ycenter_prop);
 	att_list.push_back(warning_zone_ycenter);
 
 	//	Attribute : warningZoneRadius
 	warningZoneRadiusAttrib	*warning_zone_radius = new warningZoneRadiusAttrib();
+	Tango::UserDefaultAttrProp	warning_zone_radius_prop;
+	warning_zone_radius_prop.set_description("Define the size of the warning zone ");
+	warning_zone_radius->set_default_properties(warning_zone_radius_prop);
 	att_list.push_back(warning_zone_radius);
 
 	//	Attribute : xAxisRegulationThreshold
@@ -417,7 +433,7 @@ void BeamPositionTrackingClass::attribute_factory(vector<Tango::Attr *> &att_lis
 	y_axis_regulation_threshold_prop.set_unit("Pixels");
 	y_axis_regulation_threshold_prop.set_max_value("2048");
 	y_axis_regulation_threshold_prop.set_min_value("0");
-	y_axis_regulation_threshold_prop.set_description("Represents the threshold of regulation activation on X axis. Under this value, no correction will be send !");
+	y_axis_regulation_threshold_prop.set_description("Represents the threshold of regulation activation on Y axis. Under this value, no correction will be send !");
 	y_axis_regulation_threshold->set_default_properties(y_axis_regulation_threshold_prop);
 	y_axis_regulation_threshold->set_memorized();
 	y_axis_regulation_threshold->set_memorized_init(true);
@@ -425,15 +441,21 @@ void BeamPositionTrackingClass::attribute_factory(vector<Tango::Attr *> &att_lis
 
 	//	Attribute : fixedMode
 	fixedModeAttrib	*fixed_mode = new fixedModeAttrib();
+	Tango::UserDefaultAttrProp	fixed_mode_prop;
+	fixed_mode_prop.set_description("If true, then Target and warning zone will be define in properties. User will not be able to change those values in runtime using attributes.(To be set using property FixMode)");
+	fixed_mode->set_default_properties(fixed_mode_prop);
 	att_list.push_back(fixed_mode);
 
 	//	Attribute : thresholdedImage
 	thresholdedImageAttrib	*thresholded_image = new thresholdedImageAttrib();
+	Tango::UserDefaultAttrProp	thresholded_image_prop;
+	thresholded_image_prop.set_description("Thresholded Image : This image will be estimate depending on sensor plugin in use. \nIE with LimaPlugin : a dynamic attribute will be generated (ImageThreshold) to estimate image binarisation threshold");
+	thresholded_image->set_default_properties(thresholded_image_prop);
 	att_list.push_back(thresholded_image);
 
 	//	End of Automatic code generation
 	//-------------------------------------------------------------
-}
+				}
 
 //+----------------------------------------------------------------------------
 //
@@ -442,8 +464,8 @@ void BeamPositionTrackingClass::attribute_factory(vector<Tango::Attr *> &att_lis
 // description : 	Read the class properties from database.
 //
 //-----------------------------------------------------------------------------
-void BeamPositionTrackingClass::get_class_property()
-{
+				void BeamPositionTrackingClass::get_class_property()
+				{
 	//	Initialize your default values here (if not done with  POGO).
 	//------------------------------------------------------------------
 
@@ -455,13 +477,13 @@ void BeamPositionTrackingClass::get_class_property()
 	if (Tango::Util::instance()->_UseDb==true)
 		get_db_class()->get_property(cl_prop);
 	Tango::DbDatum	def_prop;
-	
+	int	i = -1;
 
 
 	//	End of Automatic code generation
 	//------------------------------------------------------------------
 
-}
+				}
 
 //+----------------------------------------------------------------------------
 //
@@ -497,7 +519,7 @@ void BeamPositionTrackingClass::set_default_property()
 		add_wiz_dev_prop(prop_name, prop_desc);
 
 	prop_name = "NbImgToAlign";
-	prop_desc = "number of centroid values to calculate the moving of motor";
+	prop_desc = "Number of centroid values to acquire in the asservissment loop";
 	prop_def  = "";
 	vect_data.clear();
 	if (prop_def.length()>0)
@@ -511,7 +533,7 @@ void BeamPositionTrackingClass::set_default_property()
 		add_wiz_dev_prop(prop_name, prop_desc);
 
 	prop_name = "SensorPluginType";
-	prop_desc = "";
+	prop_desc = "Sensor plugin type to use";
 	prop_def  = "";
 	vect_data.clear();
 	if (prop_def.length()>0)
@@ -525,7 +547,7 @@ void BeamPositionTrackingClass::set_default_property()
 		add_wiz_dev_prop(prop_name, prop_desc);
 
 	prop_name = "ActuatorSystemDeviceAdress";
-	prop_desc = "";
+	prop_desc = "ActuatorSystemDevice adress";
 	prop_def  = "";
 	vect_data.clear();
 	if (prop_def.length()>0)
@@ -539,7 +561,7 @@ void BeamPositionTrackingClass::set_default_property()
 		add_wiz_dev_prop(prop_name, prop_desc);
 
 	prop_name = "PluginPath";
-	prop_desc = "";
+	prop_desc = "Plugin library path";
 	prop_def  = "";
 	vect_data.clear();
 	if (prop_def.length()>0)
@@ -609,7 +631,7 @@ void BeamPositionTrackingClass::set_default_property()
 		add_wiz_dev_prop(prop_name, prop_desc);
 
 	prop_name = "DeviceMode";
-	prop_desc = "Either : NORMAL, SIMULATED\nEvery step will have to be acknowlege with \"AcknowlegeStep\" cmd";
+	prop_desc = "Either : NORMAL, SIMULATED";
 	prop_def  = "";
 	vect_data.clear();
 	if (prop_def.length()>0)
@@ -651,7 +673,7 @@ void BeamPositionTrackingClass::set_default_property()
 		add_wiz_dev_prop(prop_name, prop_desc);
 
 	prop_name = "FixedMode";
-	prop_desc = "";
+	prop_desc = "If true, then Target and warning zone will be define in properties. User will not be able to change those values in runtime using attributes...";
 	prop_def  = "";
 	vect_data.clear();
 	if (prop_def.length()>0)
@@ -707,7 +729,7 @@ void BeamPositionTrackingClass::set_default_property()
 		add_wiz_dev_prop(prop_name, prop_desc);
 
 	prop_name = "AxesAliases";
-	prop_desc = "x, y";
+	prop_desc = "Set alias for X and Y axes here :\nx, y";
 	prop_def  = "";
 	vect_data.clear();
 	if (prop_def.length()>0)
@@ -742,14 +764,17 @@ void BeamPositionTrackingClass::write_class_property()
 
 	//	Put title
 	Tango::DbDatum	title("ProjectTitle");
-	string	str_title("");
+	string	str_title("BeamPositionTracking");
 	title << str_title;
 	data.push_back(title);
 
 	//	Put Description
 	Tango::DbDatum	description("Description");
 	vector<string>	str_desc;
-	str_desc.push_back("  ");
+	str_desc.push_back("BeamPositionTracking is a device that will be used on beamlines to enslave the beam position on a specific target. In order to move the beam centroid, ");
+	str_desc.push_back("BeamPositionTracking device will need to work with ActuatorSystem (pleaser refer to AS documentation). ");
+	str_desc.push_back("Asservissement loop is based on a PID algorithm (on per axis).");
+	str_desc.push_back("It will be able to work with differents types of axes devices, and several detectors such as Lima detector and XBPM using Yat4Tango::Plugin technology.");
 	description << str_desc;
 	data.push_back(description);
 		

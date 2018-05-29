@@ -790,6 +790,7 @@ void ActuatorSystem::write_yLinearRatio(Tango::WAttribute &attr)
  *	method:	ActuatorSystem::stop_axes
  *
  *	description:	method to execute "StopAxes"
+ *	Will stop movement on both axes
  *
  *
  */
@@ -813,6 +814,7 @@ void ActuatorSystem::stop_axes()
  *	method:	ActuatorSystem::move_xaxis_relative
  *
  *	description:	method to execute "MoveXAxisRelative"
+ *	To move X axis with a relative movement (take one double argument)
  *
  * @param	argin	
  *
@@ -843,6 +845,7 @@ void ActuatorSystem::move_xaxis_relative(Tango::DevDouble argin)
  *	method:	ActuatorSystem::move_yaxis_relative
  *
  *	description:	method to execute "MoveYAxisRelative"
+ *	To move Y axis with a relative movement (take one double argument)
  *
  * @param	argin	
  *
@@ -925,6 +928,13 @@ std::string ActuatorSystem::check_properties(){
 
 	return PROPERTIES_OK;
 }
+
+
+
+
+
+
+
 
 
 

@@ -1,0 +1,587 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<Title> Tango Device Server User's Guide </Title>
+</HEAD>
+<BODY TEXT="#000000" BGCOLOR="#FFFFFF" LINK="#0000FF" VLINK="#7F00FF" ALINK="#FF0000">
+
+<P><!-------TITLE------></P>
+<TABLE BORDER="0" WIDTH="100%">
+    <TR>
+        <TD ALIGN="left">
+			<A HREF="http://www.esrf.fr/" TARGET=new>
+			<IMG SRC="http://www.esrf.fr/gifs/logo/80.gif" BORDER=0 Height="60"></A>
+		</Td>
+        <TD ALIGN="center">
+			<A HREF="http://www.elettra.trieste.it/" TARGET=new>
+			<IMG SRC="http://www.esrf.fr/computing/cs/tango/elettra_logo.gif" BORDER=0 Height="60"></A>
+
+		</Td>
+        <TD ALIGN="center">
+			<A HREF="http://www.synchrotron-soleil.fr/" TARGET=new>
+			<IMG SRC="http://www.esrf.fr/computing/cs/tango/soleil_logo.gif" BORDER=0 Height="60"></A>
+		</Td>
+        <TD ALIGN="right">
+			<A HREF="http://www.cells.es/" TARGET=new>
+			<IMG SRC="http://www.esrf.fr/computing/cs/tango/alba.jpg" BORDER=0 Height="54"></A>
+		</Td>
+        <TD ALIGN="right">
+			<A HREF="http://www.desy.de/html/home/index_eng.html" TARGET=new>
+			<IMG SRC="http://www.esrf.fr/computing/cs/tango/desy.gif" BORDER=0 Height="60"></A>
+		</Td>
+    	 <Td>
+			<H2><FONT COLOR="#7F00FF">
+			<Center><A HREF="http://www.tango-controls.org/" TARGET="_top">
+					 TANGO </a> <Br> Device Server
+			</Center></FONT>
+		</Td>
+    </TR>
+</TABLE>
+
+<HR WIDTH="100%"></H5>
+
+<Br>&nbsp;<Br><Br>&nbsp;<Br><Br>&nbsp;<Br><center><Table Border=2 Cellpadding=3 CELLSPACING=0 WIDTH="100%">
+<Tr><Td><Br>&nbsp;<Br>
+<center>
+<h1>
+BeamPositionTracking <Br>
+User's Guide<Br>&nbsp;<Br> <Br><Br>
+BeamPositionTracking Class<Br>&nbsp;<Br></Td></Tr>
+</h1>
+<Tr><Td>
+<b><Center>Revision:  - Author:  <Br>
+ Implemented in C++
+</Center></b>
+</Td></Tr>
+</center>
+</Table>
+</center>
+<Br>
+<Br>
+<Br>
+<Br>
+<Br>&nbsp;<Br><Br>&nbsp;<Br>
+<h2>Introduction:</h2>
+<ul>
+	BeamPositionTracking is a device that will be used on beamlines to enslave the beam position on a specific target. In order to move the beam centroid, 
+BeamPositionTracking device will need to work with ActuatorSystem (pleaser refer to AS documentation). 
+Asservissement loop is based on a PID algorithm (on per axis).
+It will be able to work with differents types of axes devices, and several detectors such as Lima detector and XBPM using Yat4Tango::Plugin technology.<Br>
+</ul>
+<Br>
+<Br>
+<Br><h2>Class Identification:</h2>
+<ul>
+	<li><b>Contact      :</b>	 at synchrotron-soleil.fr - falilou.thiam
+	<li><b>Class Family :</b>	Process
+	<li><b>Platform     :</b>	Unix Like
+	<li><b>Bus          :</b>	Not Applicable
+</ul><Br>&nbsp;<Br><Br>
+<h2>Class Inheritance:</h2>
+	<ul>
+		<li> <a href="http://www.esrf.fr/computing/cs/tango/tango_doc/kernel_doc/cpp_doc/"> Tango::Device_4Impl</a></li>
+		<ul>
+			<li> BeamPositionTracking</li>
+			</ul>
+		</ul>
+	</ul>
+</ul>
+<Br>&nbsp;<Br>
+<h2>Description:</h2>
+
+</b>
+</center>
+
+
+<Center>
+
+<Br>
+<Br>
+</Center>
+
+
+</center>
+<Br>&nbsp;<Br><Br>&nbsp;<Br><h2>Properties:</h2>
+
+
+<Center>
+<Br> <Br> <Br> 
+<Table Border=2 Cellpadding=3 CELLSPACING=0 WIDTH="100%">
+<TR BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+<Td COLSPAN=3> <Font Size=+2><Center><b>Device Properties</b></td></Font></Center>
+<TR BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+<Td><Center><b>Property name</b></td></Center>
+<Td><Center><b>Property type</b></td></Center>
+<Td><Center><b>Description</b></td></Center>
+<Tr><Td><b><a href=#Dev_DefaultValues>DeviceTaskPeriod </a></b></Td>
+<Td><Font Size=-1>Tango::DEV_USHORT</Font></Td>
+<Td><Font Size=-1>Period of the Device task</Font></Td></Tr>
+
+<Tr><Td><b><a href=#Dev_DefaultValues>NbImgToAlign </a></b></Td>
+<Td><Font Size=-1>Tango::DEV_SHORT</Font></Td>
+<Td><Font Size=-1>Number of centroid values to acquire in the asservissment loop</Font></Td></Tr>
+
+<Tr><Td><b><a href=#Dev_DefaultValues>SensorPluginType </a></b></Td>
+<Td><Font Size=-1>Tango::DEV_STRING</Font></Td>
+<Td><Font Size=-1>Sensor plugin type to use</Font></Td></Tr>
+
+<Tr><Td><b><a href=#Dev_DefaultValues>ActuatorSystemDeviceAdress </a></b></Td>
+<Td><Font Size=-1>Tango::DEV_STRING</Font></Td>
+<Td><Font Size=-1>ActuatorSystemDevice adress</Font></Td></Tr>
+
+<Tr><Td><b><a href=#Dev_DefaultValues>PluginPath </a></b></Td>
+<Td><Font Size=-1>Tango::DEV_STRING</Font></Td>
+<Td><Font Size=-1>Plugin library path</Font></Td></Tr>
+
+<Tr><Td><b><a href=#Dev_DefaultValues>CalibrationStepNbXAxis </a></b></Td>
+<Td><Font Size=-1>Tango::DEV_SHORT</Font></Td>
+<Td><Font Size=-1>Number of steps to calibrate X Axis. Only works if X is a linear axis.</Font></Td></Tr>
+
+<Tr><Td><b><a href=#Dev_DefaultValues>CalibrationStepNbYAxis </a></b></Td>
+<Td><Font Size=-1>Tango::DEV_SHORT</Font></Td>
+<Td><Font Size=-1>Number of steps to calibrate Y Axis. Only works if Y is a linear axis.</Font></Td></Tr>
+
+<Tr><Td><b><a href=#Dev_DefaultValues>XPIDDefinition </a></b></Td>
+<Td><Font Size=-1>Tango::DEV_STRING</Font></Td>
+<Td><Font Size=-1>is Pid in use, P coefficient, I , D :
+IE : True, 1, 2, 3</Font></Td></Tr>
+
+<Tr><Td><b><a href=#Dev_DefaultValues>YPIDDefinition </a></b></Td>
+<Td><Font Size=-1>Tango::DEV_STRING</Font></Td>
+<Td><Font Size=-1>is Pid in use, P coefficient, I , D :
+IE : True, 1, 2, 3</Font></Td></Tr>
+
+<Tr><Td><b><a href=#Dev_DefaultValues>DeviceMode </a></b></Td>
+<Td><Font Size=-1>Tango::DEV_STRING</Font></Td>
+<Td><Font Size=-1>Either : NORMAL, SIMULATED</Font></Td></Tr>
+
+<Tr><Td><b><a href=#Dev_DefaultValues>FixedXTarget </a></b></Td>
+<Td><Font Size=-1>Tango::DEV_SHORT</Font></Td>
+<Td><Font Size=-1>Used as x axis target when FixMode = true</Font></Td></Tr>
+
+<Tr><Td><b><a href=#Dev_DefaultValues>FixedYTarget </a></b></Td>
+<Td><Font Size=-1>Tango::DEV_SHORT</Font></Td>
+<Td><Font Size=-1>Used as y axis target when FixMode = true</Font></Td></Tr>
+
+<Tr><Td><b><a href=#Dev_DefaultValues>FixedMode </a></b></Td>
+<Td><Font Size=-1>Tango::DEV_BOOLEAN</Font></Td>
+<Td><Font Size=-1>If true, then Target and warning zone will be define in properties. User will not be able to change those values in runtime using attributes...</Font></Td></Tr>
+
+<Tr><Td><b><a href=#Dev_DefaultValues>FixedXWarningZoneCenter </a></b></Td>
+<Td><Font Size=-1>Tango::DEV_SHORT</Font></Td>
+<Td><Font Size=-1>Used as x warning zone center when FixMode = true</Font></Td></Tr>
+
+<Tr><Td><b><a href=#Dev_DefaultValues>FixedYWarningZoneCenter </a></b></Td>
+<Td><Font Size=-1>Tango::DEV_SHORT</Font></Td>
+<Td><Font Size=-1>Used as y warning zone center when FixMode = true</Font></Td></Tr>
+
+<Tr><Td><b><a href=#Dev_DefaultValues>FixedWarningZoneRadius </a></b></Td>
+<Td><Font Size=-1>Tango::DEV_SHORT</Font></Td>
+<Td><Font Size=-1>Used as warning zone radius when FixMode = true</Font></Td></Tr>
+
+<Tr><Td><b><a href=#Dev_DefaultValues>AxesAliases </a></b></Td>
+<Td><Font Size=-1>Array of string</Font></Td>
+<Td><Font Size=-1>Set alias for X and Y axes here :
+x, y</Font></Td></Tr>
+
+</Table>
+
+</Center>
+<Br><Br><Br>
+<Br><Br><Br>
+
+<A name=Dev_DefaultValues><!---  ---></a>
+<Font Size=+1>Device Properties Default Values:</Font><Br>
+<Table Border=2 Cellpadding=2 CELLSPACING=2>
+    <tr BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+        <Td><b>Property Name</b></td>
+        <td><b>Default Values</b></td>
+    </Tr>
+    <Tr>
+        <Td>DeviceTaskPeriod</Td>
+        <td>No default value</td>
+    </Tr>
+    <Tr>
+        <Td>NbImgToAlign</Td>
+        <td>No default value</td>
+    </Tr>
+    <Tr>
+        <Td>SensorPluginType</Td>
+        <td>No default value</td>
+    </Tr>
+    <Tr>
+        <Td>ActuatorSystemDeviceAdress</Td>
+        <td>No default value</td>
+    </Tr>
+    <Tr>
+        <Td>PluginPath</Td>
+        <td>No default value</td>
+    </Tr>
+    <Tr>
+        <Td>CalibrationStepNbXAxis</Td>
+        <td>No default value</td>
+    </Tr>
+    <Tr>
+        <Td>CalibrationStepNbYAxis</Td>
+        <td>No default value</td>
+    </Tr>
+    <Tr>
+        <Td>XPIDDefinition</Td>
+        <td>No default value</td>
+    </Tr>
+    <Tr>
+        <Td>YPIDDefinition</Td>
+        <td>No default value</td>
+    </Tr>
+    <Tr>
+        <Td>DeviceMode</Td>
+        <td>No default value</td>
+    </Tr>
+    <Tr>
+        <Td>FixedXTarget</Td>
+        <td>No default value</td>
+    </Tr>
+    <Tr>
+        <Td>FixedYTarget</Td>
+        <td>No default value</td>
+    </Tr>
+    <Tr>
+        <Td>FixedMode</Td>
+        <td>No default value</td>
+    </Tr>
+    <Tr>
+        <Td>FixedXWarningZoneCenter</Td>
+        <td>No default value</td>
+    </Tr>
+    <Tr>
+        <Td>FixedYWarningZoneCenter</Td>
+        <td>No default value</td>
+    </Tr>
+    <Tr>
+        <Td>FixedWarningZoneRadius</Td>
+        <td>No default value</td>
+    </Tr>
+    <Tr>
+        <Td>AxesAliases</Td>
+        <td>No default value</td>
+    </Tr>
+</Table>
+
+<Br><Br><Br>
+<Center><b>
+There is no Class properties.<Br><Br>
+</Center></b>
+<Br> <Br> <Br> 
+
+
+</center>
+<Br>&nbsp;<Br><Br>&nbsp;<Br><h2>States:</h2>
+
+
+<Center>
+<Br> <Br> <Br> 
+<Table Border=2 Cellpadding=3 CELLSPACING=0 WIDTH="100%">
+<TR BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+<Td COLSPAN=2> <Font Size=+2><Center><b>States</b></td></Font></Center>
+<TR BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+<Td><Center><b>Names</b></td></Center>
+<Td><Center><b>Descriptions</b></td></Center>
+<Tr><Td><b>INIT</b></Td>
+<Td><Font Size=-1>Initialization curently running</Font></Td></Tr>
+
+<Tr><Td><b>RUNNING</b></Td>
+<Td><Font Size=-1>Beam tracking is running</Font></Td></Tr>
+
+<Tr><Td><b>FAULT</b></Td>
+<Td><Font Size=-1>An error occured, report to status...</Font></Td></Tr>
+
+<Tr><Td><b>STANDBY</b></Td>
+<Td><Font Size=-1>System not ready to operate, report to status...</Font></Td></Tr>
+
+<Tr><Td><b>DISABLE</b></Td>
+<Td><Font Size=-1>Calibration is running</Font></Td></Tr>
+
+<Tr><Td><b>ON</b></Td>
+<Td><Font Size=-1>System ready to operate</Font></Td></Tr>
+
+
+
+
+</Table>
+</Center>
+
+
+</center>
+<Br>&nbsp;<Br><Br>&nbsp;<Br><h2>Attributes:</h2>
+
+
+<Br>
+<Table Border=2 Cellpadding=3 CELLSPACING=0 WIDTH="100%">
+<TR BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+<Td COLSPAN=4> <Font Size=+2><Center><b>Scalar Attributes</b></td></Font></Center>
+<TR BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+<Td><Center><b>Attribute name</b></td></Center>
+<Td><Center><b>Data Type</b></td></Center>
+<Td><Center><b>R/W Type</b></td></Center>
+<Td><Center><b>Expert</b></td></Center>
+<Tr><Td><b>computedTime</b>: <Font Size=-1>Time of the calculation in ms</Font></Td>
+<Td><Center><Font Size=-1>DEV_DOUBLE</Font></Center></Td><Td><Center><Font Size=-1>READ</Font></Center></Td><Td><Center><Font Size=-1>No</Font></Center></Td></Tr>
+
+<Tr><Td><b>xAxisTarget</b>: <Font Size=-1>Define xAxis target in pixels</Font></Td>
+<Td><Center><Font Size=-1>DEV_SHORT</Font></Center></Td><Td><Center><Font Size=-1>READ_WRITE</Font></Center></Td><Td><Center><Font Size=-1>No</Font></Center></Td></Tr>
+
+<Tr><Td><b>yAxisTarget</b>: <Font Size=-1>Define yAxis target in pixels</Font></Td>
+<Td><Center><Font Size=-1>DEV_SHORT</Font></Center></Td><Td><Center><Font Size=-1>READ_WRITE</Font></Center></Td><Td><Center><Font Size=-1>No</Font></Center></Td></Tr>
+
+<Tr><Td><b>xAxisCurrentBeamPosition</b>: <Font Size=-1>Read current beam position on x axis</Font></Td>
+<Td><Center><Font Size=-1>DEV_SHORT</Font></Center></Td><Td><Center><Font Size=-1>READ</Font></Center></Td><Td><Center><Font Size=-1>No</Font></Center></Td></Tr>
+
+<Tr><Td><b>yAxisCurrentBeamPosition</b>: <Font Size=-1>Read current beam position on y axis</Font></Td>
+<Td><Center><Font Size=-1>DEV_SHORT</Font></Center></Td><Td><Center><Font Size=-1>READ</Font></Center></Td><Td><Center><Font Size=-1>No</Font></Center></Td></Tr>
+
+<Tr><Td><b>warningZoneXCenter</b>: <Font Size=-1>Define the center of warning zone on X Axis</Font></Td>
+<Td><Center><Font Size=-1>DEV_DOUBLE</Font></Center></Td><Td><Center><Font Size=-1>READ_WRITE</Font></Center></Td><Td><Center><Font Size=-1>No</Font></Center></Td></Tr>
+
+<Tr><Td><b>warningZoneYCenter</b>: <Font Size=-1>Define the center of warning zone on Y Axis</Font></Td>
+<Td><Center><Font Size=-1>DEV_DOUBLE</Font></Center></Td><Td><Center><Font Size=-1>READ_WRITE</Font></Center></Td><Td><Center><Font Size=-1>No</Font></Center></Td></Tr>
+
+<Tr><Td><b>warningZoneRadius</b>: <Font Size=-1>Define the size of the warning zone </Font></Td>
+<Td><Center><Font Size=-1>DEV_DOUBLE</Font></Center></Td><Td><Center><Font Size=-1>READ_WRITE</Font></Center></Td><Td><Center><Font Size=-1>No</Font></Center></Td></Tr>
+
+<Tr><Td><b>xAxisRegulationThreshold</b>: <Font Size=-1>Represents the threshold of regulation activation on X axis. Under this value, no correction will be send !</Font></Td>
+<Td><Center><Font Size=-1>DEV_USHORT</Font></Center></Td><Td><Center><Font Size=-1>READ_WRITE</Font></Center></Td><Td><Center><Font Size=-1>No</Font></Center></Td></Tr>
+
+<Tr><Td><b>yAxisRegulationThreshold</b>: <Font Size=-1>Represents the threshold of regulation activation on Y axis. Under this value, no correction will be send !</Font></Td>
+<Td><Center><Font Size=-1>DEV_USHORT</Font></Center></Td><Td><Center><Font Size=-1>READ_WRITE</Font></Center></Td><Td><Center><Font Size=-1>No</Font></Center></Td></Tr>
+
+<Tr><Td><b>fixedMode</b>: <Font Size=-1>If true, then Target and warning zone will be define in properties. User will not be able to change those values in runtime using attributes.(To be set using property FixMode)</Font></Td>
+<Td><Center><Font Size=-1>DEV_BOOLEAN</Font></Center></Td><Td><Center><Font Size=-1>READ</Font></Center></Td><Td><Center><Font Size=-1>No</Font></Center></Td></Tr>
+
+</Table>
+</Center>
+<Br><Br><Br><Br><Br>
+<Table Border=2 Cellpadding=3 CELLSPACING=0 WIDTH="100%">
+<TR BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+<Td COLSPAN=5> <Font Size=+2><Center><b>Image Attributes</b></td></Font></Center>
+<TR BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+<Td><Center><b>Attribute name</b></td></Center>
+<Td><Center><b>Data Type</b></td></Center>
+<Td><Center><b>X Data Length</b></td></Center>
+<Td><Center><b>Y Data Length</b></td></Center>
+<Td><Center><b>Expert</b></td></Center>
+<Tr><Td><b>thresholdedImage</b>: <Font Size=-1>Thresholded Image : This image will be estimate depending on sensor plugin in use.  IE with LimaPlugin : a dynamic attribute will be generated (ImageThreshold) to estimate image binarisation threshold</Font></Td>
+<Td><Center><Font Size=-1>DEV_UCHAR</Font></Center></Td><Td><Center><Font Size=-1>2048</Font></Center></Td><Td><Center><Font Size=-1>2048</Font></Center></Td><Td><Center><Font Size=-1>No</Font></Center></Td></Tr>
+
+</Table>
+</Center>
+
+
+</center>
+<Br>&nbsp;<Br><Br>&nbsp;<Br><h2>Commands:</h2>
+
+
+<Center>
+<Br><Br>
+<A Href="DevCommandsFrame.html"> More Details on commands.... </a><Br>
+<Br> <Br>
+<Table Border=2 Cellpadding=3 CELLSPACING=0 WIDTH="100%">
+<TR BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+<Td COLSPAN=3> <Font Size=+2><Center><b>Device Commands for Operator Level</b></td></Font></Center>
+<TR BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+<Td><Center><b>Command name</b></td></Center>
+<Td><Center><b>Argument In</b></td></Center>
+<Td><Center><b>Argument Out</b></td></Center>
+<Tr><Td><b>Init</b></Td>
+<Td><Font Size=-1>DEV_VOID</Font></Td>
+<Td><Font Size=-1>DEV_VOID</Font></Td>
+<Tr><Td><b>State</b></Td>
+<Td><Font Size=-1>DEV_VOID</Font></Td>
+<Td><Font Size=-1>DEV_STATE</Font></Td>
+<Tr><Td><b>Status</b></Td>
+<Td><Font Size=-1>DEV_VOID</Font></Td>
+<Td><Font Size=-1>CONST_DEV_STRING</Font></Td>
+<Tr><Td><b>ActuatorSystemCalibration</b></Td>
+<Td><Font Size=-1>DEV_VOID</Font></Td>
+<Td><Font Size=-1>DEV_VOID</Font></Td>
+<Tr><Td><b>StartBeamTracking</b></Td>
+<Td><Font Size=-1>DEV_VOID</Font></Td>
+<Td><Font Size=-1>DEV_VOID</Font></Td>
+<Tr><Td><b>StopBeamTracking</b></Td>
+<Td><Font Size=-1>DEV_VOID</Font></Td>
+<Td><Font Size=-1>DEV_VOID</Font></Td>
+
+
+
+</Table></Center>
+<Br> <Br> <Br> 
+<Center>
+<Table Border=2 Cellpadding=3 CELLSPACING=0 WIDTH="100%">
+<TR BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+<Td COLSPAN=3> <Font Size=+2><Center><b>Device Commands for Expert Level Only</b></td></Font></Center>
+<TR BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+<Td><Center><b>Command name</b></td></Center>
+<Td><Center><b>Argument In</b></td></Center>
+<Td><Center><b>Argument Out</b></td></Center>
+<Tr><Td><b>AcknowlegeStep</b></Td>
+<Td><Font Size=-1>DEV_VOID</Font></Td>
+<Td><Font Size=-1>DEV_VOID</Font></Td>
+
+
+
+</Table></Center>
+
+</center>
+<Br>&nbsp;<Br>
+
+<Br>
+<Br>
+<Br>
+<A NAME="Init"><!-- --></A>
+<A NAME="Init"><!-- --></A>
+<h2>1 - Init</h2>
+<ul>
+<Li><Strong>Description: </Strong> This commands re-initialise a device keeping the same network connection.<Br>
+After an Init command executed on a device, it is not necessary for client to re-connect to the device.<Br>
+This command first calls the device <i> delete_device() </i>method and then execute its <i> init_device()</i> method.<Br>
+For C++ device server, all the memory allocated in the <i> nit_device() </i> method must be freed in the <i> delete_device() </i> method.<Br>
+The language device desctructor automatically calls the <i> delete_device() </i> method.<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_VOID</Strong>
+ : none.<Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : none.<Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::INIT<Li>Tango::RUNNING<Li>Tango::FAULT<Li>Tango::STANDBY<Li>Tango::DISABLE<Li>Tango::ON</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="State"><!-- --></A>
+<A NAME="State"><!-- --></A>
+<h2>2 - State</h2>
+<ul>
+<Li><Strong>Description: </Strong> This command gets the device state (stored in its <i>device_state</i> data member) and returns it to the caller.<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_VOID</Strong>
+ : none.<Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_STATE</Strong>
+ : State Code<Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::INIT<Li>Tango::RUNNING<Li>Tango::FAULT<Li>Tango::STANDBY<Li>Tango::DISABLE<Li>Tango::ON</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="Status"><!-- --></A>
+<A NAME="Status"><!-- --></A>
+<h2>3 - Status</h2>
+<ul>
+<Li><Strong>Description: </Strong> This command gets the device status (stored in its <i>device_status</i> data member) and returns it to the caller.<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_VOID</Strong>
+ : none.<Br>&nbsp
+<Li><Strong>Argout:<Br>CONST_DEV_STRING</Strong>
+ : Status description<Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::INIT<Li>Tango::RUNNING<Li>Tango::FAULT<Li>Tango::STANDBY<Li>Tango::DISABLE<Li>Tango::ON</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="ActuatorSystemCalibration"><!-- --></A>
+<A NAME="ActuatorSystemCalibration"><!-- --></A>
+<h2>4 - ActuatorSystemCalibration</h2>
+<ul>
+<Li><Strong>Description: </Strong> Will estimate new ratio on X and Y translation. This command will write linear ratios on actuator system device, only if axes are in a linear mode<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::INIT<Li>Tango::RUNNING<Li>Tango::FAULT<Li>Tango::STANDBY<Li>Tango::DISABLE<Li>Tango::ON</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="StartBeamTracking"><!-- --></A>
+<A NAME="StartBeamTracking"><!-- --></A>
+<h2>5 - StartBeamTracking</h2>
+<ul>
+<Li><Strong>Description: </Strong> Will start beam tracking on target<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="StopBeamTracking"><!-- --></A>
+<A NAME="StopBeamTracking"><!-- --></A>
+<h2>6 - StopBeamTracking</h2>
+<ul>
+<Li><Strong>Description: </Strong> Will stop beam tracking<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::RUNNING</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="AcknowlegeStep"><!-- --></A>
+<A NAME="AcknowlegeStep"><!-- --></A>
+<h2>7 - AcknowlegeStep (for expert only)</h2>
+<ul>
+<Li><Strong>Description: </Strong> Use in simulated mode only when tracking is running, to go to the next step<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::INIT<Li>Tango::RUNNING<Li>Tango::FAULT<Li>Tango::STANDBY<Li>Tango::DISABLE<Li>Tango::ON</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+
+</center>
+<Br>&nbsp;<Br><Br>&nbsp;<Br>
+
+<!--- html Footer --->
+
+<Center>
+<Font size=-1>
+<br>
+<br>
+<TABLE BORDER="1" WIDTH="100%">
+    <Tr>
+		<!--- Hosted by Sourceforge --->
+        <Td Align="Center">
+			<Font size=-1>
+			<b>TANGO</b> is an open source project hosted by :<br>
+			<A href="http://sourceforge.net" Target="new">
+					<IMG title="Sourceforge logo"
+						alt="Sourceforge logo small"
+						src="http://www.esrf.fr/computing/cs/tango/sourceforge.gif"
+						border=0> </a>
+			</Font>
+		</Td>
+		<!--- 2 Sourceforge Repositories --->
+		<Td Align="Center">
+			<Font size=-1>
+			Core and Tools :
+			<a href="http://tango-cs.cvs.sourceforge.net/tango-cs/" Target="new">
+			CVS repository</a> on
+			<a href="https://sourceforge.net/projects/tango-cs" Target=new>
+			tango-cs project</a>
+
+			<br>
+
+			Device Servers :
+			<a href="http://tango-ds.cvs.sourceforge.net/tango-ds/" Target="new">
+					CVS repository</a> on
+			<a href="https://sourceforge.net/projects/tango-ds" Target=new>
+					tango-ds project</a>
+			</Font>
+		</Td>
+    </Tr>
+</Table>
+</Font>
+</Center>
+</body>
+</html>

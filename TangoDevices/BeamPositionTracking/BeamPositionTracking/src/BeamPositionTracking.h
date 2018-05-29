@@ -4,7 +4,7 @@
 //
 // description : Include for the BeamPositionTracking class.
 //
-// project :	
+// project :	BeamPositionTracking
 //
 // $Author:  $
 //
@@ -59,17 +59,20 @@ namespace BeamPositionTracking_ns
 
 /**
  * Class Description:
- * 
+ * BeamPositionTracking is a device that will be used on beamlines to enslave the beam position on a specific target. In order to move the beam centroid, 
+ *	BeamPositionTracking device will need to work with ActuatorSystem (pleaser refer to AS documentation). 
+ *	Asservissement loop is based on a PID algorithm (on per axis).
+ *	It will be able to work with differents types of axes devices, and several detectors such as Lima detector and XBPM using Yat4Tango::Plugin technology.
  */
 
 /*
  *	Device States Description:
-*  Tango::INIT :
-*  Tango::RUNNING :
-*  Tango::FAULT :
-*  Tango::STANDBY :
-*  Tango::DISABLE :
-*  Tango::ON :
+*  Tango::INIT :     Initialization curently running
+*  Tango::RUNNING :  Beam tracking is running
+*  Tango::FAULT :    An error occured, report to status...
+*  Tango::STANDBY :  System not ready to operate, report to status...
+*  Tango::DISABLE :  Calibration is running
+*  Tango::ON :       System ready to operate
  */
 
 
@@ -118,19 +121,19 @@ public :
  */
 	Tango::DevUShort	deviceTaskPeriod;
 /**
- *	number of centroid values to calculate the moving of motor
+ *	Number of centroid values to acquire in the asservissment loop
  */
 	Tango::DevShort	nbImgToAlign;
 /**
- *	
+ *	Sensor plugin type to use
  */
 	string	sensorPluginType;
 /**
- *	
+ *	ActuatorSystemDevice adress
  */
 	string	actuatorSystemDeviceAdress;
 /**
- *	
+ *	Plugin library path
  */
 	string	pluginPath;
 /**
@@ -153,7 +156,6 @@ public :
 	string	yPIDDefinition;
 /**
  *	Either : NORMAL, SIMULATED
- *	Every step will have to be acknowlege with "AcknowlegeStep" cmd
  */
 	string	deviceMode;
 /**
@@ -165,7 +167,7 @@ public :
  */
 	Tango::DevShort	fixedYTarget;
 /**
- *	
+ *	If true, then Target and warning zone will be define in properties. User will not be able to change those values in runtime using attributes...
  */
 	Tango::DevBoolean	fixedMode;
 /**
@@ -181,6 +183,7 @@ public :
  */
 	Tango::DevShort	fixedWarningZoneRadius;
 /**
+ *	Set alias for X and Y axes here :
  *	x, y
  */
 	vector<string>	axesAliases;
@@ -397,22 +400,22 @@ public :
  */
 	virtual bool is_AcknowlegeStep_allowed(const CORBA::Any &any);
 /**
- * Will estimate new ratio on X and Y translation
+ * Will estimate new ratio on X and Y translation. This command will write linear ratios on actuator system device, only if axes are in a linear mode
  *	@exception DevFailed
  */
 	void	actuator_system_calibration();
 /**
- * 
+ * Will start beam tracking on target
  *	@exception DevFailed
  */
 	void	start_beam_tracking();
 /**
- * 
+ * Will stop beam tracking
  *	@exception DevFailed
  */
 	void	stop_beam_tracking();
 /**
- * Use this command in simulated mode
+ * Use in simulated mode only when tracking is running, to go to the next step
  *	@exception DevFailed
  */
 	void	acknowlege_step();

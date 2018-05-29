@@ -61,18 +61,17 @@ namespace ActuatorSystem_ns
  * Class Description:
  * This device should be used for BeamPositionTracking application only.
  *	This device's aim is to organize translations (X and Y axis).
- *	To use a specific translation (or a rotation) on this device, make sure that a plugin exists already...
- *	Will also apply ratios (calibration results) on those axes.
+ *	To use a translation with this device, make sure that a plugin already exists.
  */
 
 /*
  *	Device States Description:
-*  Tango::ON :
-*  Tango::MOVING :
-*  Tango::FAULT :
-*  Tango::INIT :
-*  Tango::STANDBY :
-*  Tango::ALARM :
+*  Tango::ON :       ActuatorSystem is now ready to operate with  BeamPositionTracking, both X and Y axes are calibrated and in a good state to go.
+*  Tango::MOVING :   At least one axis is moving
+*  Tango::FAULT :    An error occured, report to status...
+*  Tango::INIT :     Initialisation currently running
+*  Tango::STANDBY :  Device not ready to operate yet, report to status...
+*  Tango::ALARM :    At least one axis is out of bounds
  */
 
 
@@ -117,27 +116,27 @@ public :
  */
 //@{
 /**
- *	
+ *	Path to the X Axis plugin library
  */
 	string	xAxisPluginPath;
 /**
- *	
+ *	X Axis plugin type
  */
 	string	xAxisPluginType;
 /**
- *	
+ *	Y Axis plugin type
  */
 	string	yAxisPluginType;
 /**
- *	
+ *	Path to the Y Axis plugin library
  */
 	string	yAxisPluginPath;
 /**
- *	
+ *	X Axis Tango device adress
  */
 	string	xAxisDeviceAdress;
 /**
- *	
+ *	Y Axis Tango device adress
  */
 	string	yAxisDeviceAdress;
 /**
@@ -370,18 +369,18 @@ public :
  */
 	virtual bool is_ApplyRelativeMovementOnAxes_allowed(const CORBA::Any &any);
 /**
- * 
+ * Will stop movement on both axes
  *	@exception DevFailed
  */
 	void	stop_axes();
 /**
- * 
+ * To move X axis with a relative movement (take one double argument)
  *	@param	argin	
  *	@exception DevFailed
  */
 	void	move_xaxis_relative(Tango::DevDouble);
 /**
- * 
+ * To move Y axis with a relative movement (take one double argument)
  *	@param	argin	
  *	@exception DevFailed
  */

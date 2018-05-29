@@ -956,7 +956,7 @@ void BeamPositionTracking::write_warningZoneRadius(Tango::WAttribute &attr)
  *	method:	BeamPositionTracking::actuator_system_calibration
  *
  *	description:	method to execute "ActuatorSystemCalibration"
- *	Will estimate new ratio on X and Y translation
+ *	Will estimate new ratio on X and Y translation. This command will write linear ratios on actuator system device, only if axes are in a linear mode
  *
  *
  */
@@ -980,6 +980,7 @@ void BeamPositionTracking::actuator_system_calibration()
  *	method:	BeamPositionTracking::start_beam_tracking
  *
  *	description:	method to execute "StartBeamTracking"
+ *	Will start beam tracking on target
  *
  *
  */
@@ -1004,6 +1005,7 @@ void BeamPositionTracking::start_beam_tracking()
  *	method:	BeamPositionTracking::stop_beam_tracking
  *
  *	description:	method to execute "StopBeamTracking"
+ *	Will stop beam tracking
  *
  *
  */
@@ -1105,7 +1107,7 @@ void BeamPositionTracking::updateAttrLabel(std::string attrName, std::string new
  *	method:	BeamPositionTracking::acknowlege_step
  *
  *	description:	method to execute "AcknowlegeStep"
- *	Use this command in simulated mode
+ *	Use in simulated mode only when tracking is running, to go to the next step
  *
  *
  */
@@ -1122,6 +1124,17 @@ void BeamPositionTracking::acknowlege_step()
 	}catch(...){
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 
