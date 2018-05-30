@@ -1,12 +1,8 @@
 package main.java.fr.soleil.comete.bptApp.view;
-import java.applet.Applet;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.GridLayout;
-import java.awt.Point;
-
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -64,10 +60,11 @@ public class ControlPanel implements Runnable  {
     String _bptDeviceAdress;
     boolean _specificPropertiesInitialized;
 	boolean _bptReadyToOperate;
-	boolean _bptOperating;
+	boolean _bptOperating;	
 	ConfigPanel _configPanel;
 	JFrame _mainFrame;
-	
+	String _xAlias;
+	String _yAlias;
 	int _xOldFrameDim;
 	int _yOldFrameDim;
 	int _xOldtarget;
@@ -110,13 +107,15 @@ public class ControlPanel implements Runnable  {
 	 *  
 	 *  To launch control panel
 	 * **************************************************************/
-	public ControlPanel (String bptDeviceAdress, String asDeviceAdress, ConfigPanel configPanel){
+	public ControlPanel (String bptDeviceAdress, String asDeviceAdress, ConfigPanel configPanel, String xAlias, String yAlias){
 		_bptDeviceAdress = bptDeviceAdress;
 		_configPanel = configPanel;
 		_bptReadyToOperate = false;
 		_specificPropertiesInitialized = false;
 		_bptOperating = false;
 		_lockMode = true;
+		_xAlias = xAlias;
+		_yAlias = yAlias;
 		_xOldFrameDim = 0;
 		_yOldFrameDim = 0;
 		_configPanel.hideConfigPanel();
@@ -186,6 +185,11 @@ public class ControlPanel implements Runnable  {
 	 *  Will refresh image size only if mainFrame dimensions has changed
 	 * **************************************************************/
 	public void refreshImageSize(){
+		
+		//TESTS...
+		_xTarget.setSize(200, 200);
+		_xTarget.repaint();
+		
 		int newXFrameDim = _mainFrame.getSize().width;
 		int newYFrameDim = _mainFrame.getSize().height;
 		
@@ -194,8 +198,8 @@ public class ControlPanel implements Runnable  {
 			_xOldFrameDim = newXFrameDim;
 			_yOldFrameDim = newYFrameDim;
 			//Update image size
-			//_viewer.setAutoZoom(true);
-			_viewer.zoomIn();
+			_viewer.setAutoZoom(true);
+			//_viewer.zoomIn();
 		}
 	}
 	/****************************************************************
@@ -392,7 +396,6 @@ public class ControlPanel implements Runnable  {
 		//lock mode
 		_lockModeStatus = new IconButton();
 		lockStatus = new Label();
-		
 	}
 	
 	/****************************************************************
@@ -493,7 +496,6 @@ public class ControlPanel implements Runnable  {
         TangoKey lockModeKey = new TangoKey();
         TangoKeyTool.registerAttribute(lockModeKey, bptDeviceAdress, LOCK_MODE);
         booleanBox.connectWidgetNoMetaData(_lockModeStatus, lockModeKey);
-        
 	}
 	
 	/****************************************************************
@@ -512,7 +514,6 @@ public class ControlPanel implements Runnable  {
         _mainFrame.setLocationRelativeTo(null);
         _mainFrame.setVisible(true);
 	}
-	
 	/****************************************************************
 	 *  initRightPanel() 
 	 *  
@@ -530,9 +531,9 @@ public class ControlPanel implements Runnable  {
 		JPanel currentCentroidPanel = new JPanel(new GridLayout(2,2));	
 		currentCentroidPanel.setBorder(BorderFactory.createTitledBorder("CENTROIDS"));
 		Label xcentroidLab = new Label();
-		xcentroidLab.setText("- X Current Centroid ");
+		xcentroidLab.setText("- " + _xAlias +" Current Centroid ");
 		Label ycentroidLab = new Label();
-		ycentroidLab.setText("- Y Current Centroid ");
+		ycentroidLab.setText("- " + _yAlias +" Current Centroid ");
 		currentCentroidPanel.add(xcentroidLab);
 		currentCentroidPanel.add(ycentroidLab);
 		currentCentroidPanel.add(_xCentroid);
@@ -545,12 +546,16 @@ public class ControlPanel implements Runnable  {
 		targetCentroidPanel.setBorder(BorderFactory.createTitledBorder("TARGETS"));
 		//Target labels definitions
 		Label xTargetLab = new Label();
-		xTargetLab.setText("- X Current Target ");
+		xTargetLab.setText("- " + _xAlias +" Current Target ");
 		Label yTargetLab = new Label();
-		yTargetLab.setText("- Y Current Target ");
+		yTargetLab.setText("- " + _yAlias +" Current Target ");
 		targetCentroidPanel.add(xTargetLab);
-		targetCentroidPanel.add(yTargetLab);	
-		targetCentroidPanel.add(_xTarget);
+		targetCentroidPanel.add(yTargetLab);
+		JPanel xtargetPanel = new JPanel(new BorderLayout());
+		//targetCentroidPanel.add(_xTarget);
+		xtargetPanel.add(_xTarget);
+		_xTarget.setPreferredSize(xtargetPanel.getSize());
+		targetCentroidPanel.add(xtargetPanel);
 		targetCentroidPanel.add(_yTarget);
 		//Adding to centroid panel
 		centroidPanel.add(_detectorPanel);
@@ -561,9 +566,9 @@ public class ControlPanel implements Runnable  {
 		warningZonePanel.setBorder(BorderFactory.createTitledBorder("WARNING ZONE DEFINITION" ));
 		//labels definitions
 		Label warnXLab = new Label();
-		warnXLab.setText("X Warning zone center");
+		warnXLab.setText(_xAlias +" Warning zone center");
 		Label warnYLab = new Label();
-		warnYLab.setText("Y Warning zone center");
+		warnYLab.setText(_yAlias +" Warning zone center");
 		Label warnRadiusLab = new Label();
 		warnRadiusLab.setText("Warning zone radius");
 		//Panel construction
@@ -646,9 +651,9 @@ public class ControlPanel implements Runnable  {
 		yStatePanel.add(_yAxisState);
 		yStatePanel.add(_yAxisPosition);
 		yStatePanel.add(_isYAxisCalibrated);		
-	    Border xBrd = BorderFactory.createTitledBorder("X AXIS STATUS" );
+	    Border xBrd = BorderFactory.createTitledBorder(_xAlias +" AXIS STATUS" );
 	    xStatePanel.setBorder(xBrd);
-	    Border yBrd = BorderFactory.createTitledBorder("Y AXIS STATUS" );
+	    Border yBrd = BorderFactory.createTitledBorder(_yAlias +" AXIS STATUS" );
 	    yStatePanel.setBorder(yBrd);
 		
 		cmdPanel.add(xStatePanel);
@@ -678,7 +683,6 @@ public class ControlPanel implements Runnable  {
 			} catch (InterruptedException e) {
 			}
 		}
-
 	}
 	/****************************************************************
 	 *  showControlPanel() 
@@ -695,20 +699,5 @@ public class ControlPanel implements Runnable  {
 	 * **************************************************************/
 	public void hideControlPanel(){
 		_mainFrame.setVisible(false);
-	}
-	
-	public class ThreeStyles extends Applet
-	{
-	  public void paint (Graphics g)
-	  {			                 // using drawRoundRect()
-	    g.drawRoundRect(40, 50, 90, 90, 200, 200);
-	    g.fillRoundRect(40, 160, 90, 90, 200, 200);
-				                 // using drawOval()
-	    g.drawOval(150, 50, 90, 90);
-	    g.fillOval(150, 160, 90, 90);
-				                // using drawArc()
-	    g.drawArc(270, 50, 90, 90, 0, 360);
-	    g.fillArc(270, 160, 90, 90, 0, 360);
-	  }
 	}
 }

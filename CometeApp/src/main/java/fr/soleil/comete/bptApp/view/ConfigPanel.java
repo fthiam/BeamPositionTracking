@@ -33,7 +33,7 @@ public class ConfigPanel implements Runnable  {
 	private static final String Y_CALIBRATION_STEP_NUMBER = "CalibrationStepNbYAxis";
 	private static final String AS_DEVICE_ADRESS = "ActuatorSystemDeviceAdress";
 	private static final String WARM_BEAM_LINE_TRANSLATION_THRESHOLD = "bpt_ui_warmBeamLineTranslationThreshold";
-
+    private static final String AXES_ALIASES = "AxesAliases";
 	boolean _bptDeviceReadyToConnect;
 	boolean _bptDeviceAddressHasChange;
 	String _bptDeviceAdress;
@@ -65,12 +65,15 @@ public class ConfigPanel implements Runnable  {
 	Label xMinPosition;
 	Label xMaxPosition;
 	Label xCalibrationStepNumber;
-
 	// Y Axis Info
 	Label yPid;
 	Label yMinPosition;
 	Label yMaxPosition;
 	Label yCalibrationStepNumber;
+	//Axes alias
+	Label _axesAliases;
+	String _xAlias;
+	String _yAlias;
 	
 	//PID info
 	boolean _pidInfoInitDone;
@@ -94,6 +97,7 @@ public class ConfigPanel implements Runnable  {
 	//ConfigPannel State
 	boolean _bptReady;
 	boolean _asReady;
+	boolean _axesAliasesInit;
 	/****************************************************************
 	 *  ConfigPanel() 
 	 *  
@@ -102,11 +106,14 @@ public class ConfigPanel implements Runnable  {
 	public ConfigPanel(){
 		_bptDeviceReadyToConnect = false;
 		_bptDeviceAddressHasChange = false;
+		_axesAliasesInit = false;
 		_asDeviceInitDone = false;
 		_pidInfoInitDone = false;
 		_bptReady = false;
 		_asReady = false;
 		_configPanel = this;
+		_xAlias = "x";
+		_yAlias = "y";
 		initComponents();
 		initGui();
 		run();
@@ -118,7 +125,7 @@ public class ConfigPanel implements Runnable  {
 	 * **************************************************************/
 	public void refreshInterface(){
 		//BPT connection is ok
-		if (_bptReady && _asReady){
+		if (_bptReady && _asReady /*&& _axesAliasesInit*/){
 			_controlRedirection.setVisible(true);
 			_rightPanel.setVisible(true);
 		}
@@ -145,7 +152,8 @@ public class ConfigPanel implements Runnable  {
 		
 		if (!_pidInfoInitDone && _bptReady)
 			_pidInfoInitDone = parsePIDs();
-		
+		if(!_axesAliasesInit && _bptReady)
+			initAliases();
 	}
 	/****************************************************************
 	 *  initASDevice() 
@@ -174,7 +182,8 @@ public class ConfigPanel implements Runnable  {
 					//TODO GET new LABELS SOMEWHERE !!!!					
 					_controlPanel = new ControlPanel(_bptDeviceAdressTextField.getText(),
 							 						  _asAdressLabel.getText(),
-							 						  _configPanel);
+							 						  _configPanel, 
+							 						 _xAlias, _yAlias);
 					 //start control panel thread in new thread
 					 new Thread(new Runnable() {
 					      public void run() {
@@ -196,10 +205,13 @@ public class ConfigPanel implements Runnable  {
 		});
 		
 		//Devices Address
-		_bptDeviceAdressTextField = new JTextField("testsfalilou/beamalignment/beampositiontracking", 20);
+		_bptDeviceAdressTextField = new JTextField("Simulation/BeamPositionTracking/beampositiontracking", 20);
 		//States
 		_bptState = new Label();
 		_asState = new Label();		
+
+		//axes alias 
+		_axesAliases = new Label();		
 
 		//Connect BPT button
 		_connectBPT = new StringButton();
@@ -283,7 +295,7 @@ public class ConfigPanel implements Runnable  {
 		connectProperty(xCalibrationStepNumber, _bptDeviceAdress,X_CALIBRATION_STEP_NUMBER );
 		connectProperty(yCalibrationStepNumber, _bptDeviceAdress,Y_CALIBRATION_STEP_NUMBER );
 		connectProperty(_asAdressLabel,_bptDeviceAdress, AS_DEVICE_ADRESS );
-		
+		connectProperty(_axesAliases, _bptDeviceAdress, AXES_ALIASES);
 		connectSpecificsProperties(_bpt_ui_warmBeamLineTranslationThreshold, _bptDeviceAdress, WARM_BEAM_LINE_TRANSLATION_THRESHOLD);
 		
 		_bptConnectionStatus.setText("Device BeamTrackingPosition : " + _bptDeviceAdress + " is connected !");
@@ -309,6 +321,20 @@ public class ConfigPanel implements Runnable  {
 	        }
     	}
     	return false;
+	}
+	/****************************************************************
+	 *  initAliases() 
+	 *  
+	 *  To init axes aliases
+	 * **************************************************************/
+	public void initAliases(){
+		if (!_axesAliases.getText().equals("")){
+			_axesAliasesInit = true;
+			String [] aliases = _axesAliases.getText().split("\n");
+
+			_xAlias = aliases[0];
+			_yAlias = aliases[1];
+		}
 	}
 	/****************************************************************
 	 *  ParsePIDs(Label xPid, Label yPid) 
