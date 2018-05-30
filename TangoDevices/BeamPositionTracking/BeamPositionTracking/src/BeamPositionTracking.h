@@ -59,8 +59,8 @@ namespace BeamPositionTracking_ns
 
 /**
  * Class Description:
- * BeamPositionTracking is a device that will be used on beamlines to enslave the beam position on a specific target. In order to move the beam centroid, 
- *	BeamPositionTracking device will need to work with ActuatorSystem (pleaser refer to AS documentation). 
+ * BeamPositionTracking is a device that will be used on beamlines to enslave the beam position on a specific target. In order to move the beam centroid,
+ *	BeamPositionTracking device will need to work with ActuatorSystem (please refer to AS documentation).
  *	Asservissement loop is based on a PID algorithm (on per axis).
  *	It will be able to work with differents types of axes devices, and several detectors such as Lima detector and XBPM using Yat4Tango::Plugin technology.
  */
@@ -137,11 +137,11 @@ public :
  */
 	string	pluginPath;
 /**
- *	Number of steps to calibrate X Axis. Only works if X is a linear axis.
+ *	Number of steps to calibrate X Axis. Only works if X is set as a linear axis on ActuatorSystemDevice.
  */
 	Tango::DevShort	calibrationStepNbXAxis;
 /**
- *	Number of steps to calibrate Y Axis. Only works if Y is a linear axis.
+ *	Number of steps to calibrate Y Axis. Only works if Y is set as a linear axis on ActuatorSystemDevice.
  */
 	Tango::DevShort	calibrationStepNbYAxis;
 /**
@@ -400,7 +400,9 @@ public :
  */
 	virtual bool is_AcknowlegeStep_allowed(const CORBA::Any &any);
 /**
- * Will estimate new ratio on X and Y translation. This command will write linear ratios on actuator system device, only if axes are in a linear mode
+ * Will estimate new ratio on X and Y axes (only if axes are in a linear mode).
+ *	To do so, it will record current beam centroid, move each axes with CalibrationStepNbX/YAxis value (set in properties) and record new centroid...
+ *	This feature will then write linear new ratios on actuator system device. 
  *	@exception DevFailed
  */
 	void	actuator_system_calibration();

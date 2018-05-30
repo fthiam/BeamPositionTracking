@@ -61,6 +61,56 @@ namespace ActuatorSystem_ns
 {
 //+----------------------------------------------------------------------------
 //
+// method : 		MoveYAxisRelativeCmd::execute()
+// 
+// description : 	method to trigger the execution of the command.
+//                PLEASE DO NOT MODIFY this method core without pogo   
+//
+// in : - device : The device on which the command must be executed
+//		- in_any : The command input data
+//
+// returns : The command output data (packed in the Any object)
+//
+//-----------------------------------------------------------------------------
+CORBA::Any *MoveYAxisRelativeCmd::execute(Tango::DeviceImpl *device,const CORBA::Any &in_any)
+{
+
+	cout2 << "MoveYAxisRelativeCmd::execute(): arrived" << endl;
+
+	Tango::DevDouble	argin;
+	extract(in_any, argin);
+
+	((static_cast<ActuatorSystem *>(device))->move_yaxis_relative(argin));
+	return new CORBA::Any();
+}
+
+//+----------------------------------------------------------------------------
+//
+// method : 		MoveXAxisRelativeCmd::execute()
+// 
+// description : 	method to trigger the execution of the command.
+//                PLEASE DO NOT MODIFY this method core without pogo   
+//
+// in : - device : The device on which the command must be executed
+//		- in_any : The command input data
+//
+// returns : The command output data (packed in the Any object)
+//
+//-----------------------------------------------------------------------------
+CORBA::Any *MoveXAxisRelativeCmd::execute(Tango::DeviceImpl *device,const CORBA::Any &in_any)
+{
+
+	cout2 << "MoveXAxisRelativeCmd::execute(): arrived" << endl;
+
+	Tango::DevDouble	argin;
+	extract(in_any, argin);
+
+	((static_cast<ActuatorSystem *>(device))->move_xaxis_relative(argin));
+	return new CORBA::Any();
+}
+
+//+----------------------------------------------------------------------------
+//
 // method : 		ApplyRelativeMovementOnAxesCmd::execute()
 // 
 // description : 	method to trigger the execution of the command.
@@ -107,55 +157,7 @@ CORBA::Any *StopAxesClass::execute(Tango::DeviceImpl *device,const CORBA::Any &i
 	return new CORBA::Any();
 }
 
-//+----------------------------------------------------------------------------
-//
-// method : 		MoveXAxisRelativeClass::execute()
-// 
-// description : 	method to trigger the execution of the command.
-//                PLEASE DO NOT MODIFY this method core without pogo   
-//
-// in : - device : The device on which the command must be executed
-//		- in_any : The command input data
-//
-// returns : The command output data (packed in the Any object)
-//
-//-----------------------------------------------------------------------------
-CORBA::Any *MoveXAxisRelativeClass::execute(Tango::DeviceImpl *device,const CORBA::Any &in_any)
-{
 
-	cout2 << "MoveXAxisRelativeClass::execute(): arrived" << endl;
-
-	Tango::DevDouble	argin;
-	extract(in_any, argin);
-
-	((static_cast<ActuatorSystem *>(device))->move_xaxis_relative(argin));
-	return new CORBA::Any();
-}
-
-//+----------------------------------------------------------------------------
-//
-// method : 		MoveYAxisRelativeClass::execute()
-// 
-// description : 	method to trigger the execution of the command.
-//                PLEASE DO NOT MODIFY this method core without pogo   
-//
-// in : - device : The device on which the command must be executed
-//		- in_any : The command input data
-//
-// returns : The command output data (packed in the Any object)
-//
-//-----------------------------------------------------------------------------
-CORBA::Any *MoveYAxisRelativeClass::execute(Tango::DeviceImpl *device,const CORBA::Any &in_any)
-{
-
-	cout2 << "MoveYAxisRelativeClass::execute(): arrived" << endl;
-
-	Tango::DevDouble	argin;
-	extract(in_any, argin);
-
-	((static_cast<ActuatorSystem *>(device))->move_yaxis_relative(argin));
-	return new CORBA::Any();
-}
 
 
 
@@ -250,12 +252,12 @@ void ActuatorSystemClass::command_factory()
 		"",
 		"",
 		Tango::OPERATOR));
-	command_list.push_back(new MoveXAxisRelativeClass("MoveXAxisRelative",
+	command_list.push_back(new MoveXAxisRelativeCmd("MoveXAxisRelative",
 		Tango::DEV_DOUBLE, Tango::DEV_VOID,
 		"",
 		"",
 		Tango::OPERATOR));
-	command_list.push_back(new MoveYAxisRelativeClass("MoveYAxisRelative",
+	command_list.push_back(new MoveYAxisRelativeCmd("MoveYAxisRelative",
 		Tango::DEV_DOUBLE, Tango::DEV_VOID,
 		"",
 		"",
@@ -391,14 +393,14 @@ void ActuatorSystemClass::attribute_factory(vector<Tango::Attr *> &att_list)
 	//	Attribute : isXLinear
 	isXLinearAttrib	*is_xlinear = new isXLinearAttrib();
 	Tango::UserDefaultAttrProp	is_xlinear_prop;
-	is_xlinear_prop.set_description("If true the xLinearRatio attribute can be written by BeamPositionTracking device if user call ");
+	is_xlinear_prop.set_description("If true the xLinearRatio attribute can be written by BeamPositionTracking device when user call ActuatorSystemCalibration on it.");
 	is_xlinear->set_default_properties(is_xlinear_prop);
 	att_list.push_back(is_xlinear);
 
 	//	Attribute : isYLinear
 	isYLinearAttrib	*is_ylinear = new isYLinearAttrib();
 	Tango::UserDefaultAttrProp	is_ylinear_prop;
-	is_ylinear_prop.set_description("If true the yLinearRatio attribute can be written by BeamPositionTracking device if user call ");
+	is_ylinear_prop.set_description("If true the yLinearRatio attribute can be written by BeamPositionTracking device when user call ActuatorSystemCalibration on it.");
 	is_ylinear->set_default_properties(is_ylinear_prop);
 	att_list.push_back(is_ylinear);
 
@@ -635,7 +637,7 @@ void ActuatorSystemClass::set_default_property()
 		add_wiz_dev_prop(prop_name, prop_desc);
 
 	prop_name = "DeviceMode";
-	prop_desc = "Either : NORMAL, SIMULATED\nIn simulated mode, this device will only read state/status and positions from axes, it will not send any cmds....";
+	prop_desc = "Either NORMAL or SIMULATED;\nIn simulated mode, this device will only read state/status and positions from axes, it will not send any new positions....";
 	prop_def  = "";
 	vect_data.clear();
 	if (prop_def.length()>0)
@@ -677,7 +679,8 @@ void ActuatorSystemClass::write_class_property()
 	//	Put Description
 	Tango::DbDatum	description("Description");
 	vector<string>	str_desc;
-	str_desc.push_back("This device will organize movements on X and Y axes");
+	str_desc.push_back("This device should be used for BeamPositionTracking application only. This device's aim is to organize motors movements on two axes ( X and Y ) ");
+	str_desc.push_back("in order to move beam centroid position.");
 	description << str_desc;
 	data.push_back(description);
 		

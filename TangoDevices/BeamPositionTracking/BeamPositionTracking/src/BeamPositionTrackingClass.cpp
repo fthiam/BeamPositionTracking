@@ -449,7 +449,7 @@ void BeamPositionTrackingClass::attribute_factory(vector<Tango::Attr *> &att_lis
 	//	Attribute : thresholdedImage
 	thresholdedImageAttrib	*thresholded_image = new thresholdedImageAttrib();
 	Tango::UserDefaultAttrProp	thresholded_image_prop;
-	thresholded_image_prop.set_description("Thresholded Image : This image will be estimate depending on sensor plugin in use. \nIE with LimaPlugin : a dynamic attribute will be generated (ImageThreshold) to estimate image binarisation threshold");
+	thresholded_image_prop.set_description("Thresholded Image : This image will be estimate returned by the sensor plugin in use. \nNote that with LimaPlugin : a dynamic attribute will be generated (ImageThreshold) to estimate image binarisation threshold");
 	thresholded_image->set_default_properties(thresholded_image_prop);
 	att_list.push_back(thresholded_image);
 
@@ -575,7 +575,7 @@ void BeamPositionTrackingClass::set_default_property()
 		add_wiz_dev_prop(prop_name, prop_desc);
 
 	prop_name = "CalibrationStepNbXAxis";
-	prop_desc = "Number of steps to calibrate X Axis. Only works if X is a linear axis.";
+	prop_desc = "Number of steps to calibrate X Axis. Only works if X is set as a linear axis on ActuatorSystemDevice.";
 	prop_def  = "";
 	vect_data.clear();
 	if (prop_def.length()>0)
@@ -589,7 +589,7 @@ void BeamPositionTrackingClass::set_default_property()
 		add_wiz_dev_prop(prop_name, prop_desc);
 
 	prop_name = "CalibrationStepNbYAxis";
-	prop_desc = "Number of steps to calibrate Y Axis. Only works if Y is a linear axis.";
+	prop_desc = "Number of steps to calibrate Y Axis. Only works if Y is set as a linear axis on ActuatorSystemDevice.";
 	prop_def  = "";
 	vect_data.clear();
 	if (prop_def.length()>0)
@@ -771,8 +771,8 @@ void BeamPositionTrackingClass::write_class_property()
 	//	Put Description
 	Tango::DbDatum	description("Description");
 	vector<string>	str_desc;
-	str_desc.push_back("BeamPositionTracking is a device that will be used on beamlines to enslave the beam position on a specific target. In order to move the beam centroid, ");
-	str_desc.push_back("BeamPositionTracking device will need to work with ActuatorSystem (pleaser refer to AS documentation). ");
+	str_desc.push_back("BeamPositionTracking is a device that will be used on beamlines to enslave the beam position on a specific target. In order to move the beam centroid,");
+	str_desc.push_back("BeamPositionTracking device will need to work with ActuatorSystem (please refer to AS documentation).");
 	str_desc.push_back("Asservissement loop is based on a PID algorithm (on per axis).");
 	str_desc.push_back("It will be able to work with differents types of axes devices, and several detectors such as Lima detector and XBPM using Yat4Tango::Plugin technology.");
 	description << str_desc;

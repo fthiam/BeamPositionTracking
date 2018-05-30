@@ -814,7 +814,7 @@ void ActuatorSystem::stop_axes()
  *	method:	ActuatorSystem::move_xaxis_relative
  *
  *	description:	method to execute "MoveXAxisRelative"
- *	To move X axis with a relative movement (take one double argument)
+ *	To move X axis with a relative movement
  *
  * @param	argin	
  *
@@ -845,7 +845,7 @@ void ActuatorSystem::move_xaxis_relative(Tango::DevDouble argin)
  *	method:	ActuatorSystem::move_yaxis_relative
  *
  *	description:	method to execute "MoveYAxisRelative"
- *	To move Y axis with a relative movement (take one double argument)
+ *	To move Y axis with a relative movement 
  *
  * @param	argin	
  *
@@ -876,7 +876,7 @@ void ActuatorSystem::move_yaxis_relative(Tango::DevDouble argin)
  *	method:	ActuatorSystem::apply_relative_movement_on_axes
  *
  *	description:	method to execute "ApplyRelativeMovementOnAxes"
- *	Argin[0] = movementOnXAxis
+ *	Argin[0] = movementOnXAxis; 
  *	Argin[1] = movementOnYAxis
  *
  * @param	argin	
@@ -928,6 +928,8 @@ std::string ActuatorSystem::check_properties(){
 
 	return PROPERTIES_OK;
 }
+
+
 
 
 

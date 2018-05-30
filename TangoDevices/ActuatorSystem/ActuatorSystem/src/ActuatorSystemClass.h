@@ -220,10 +220,10 @@ public:
 
 
 
-class MoveYAxisRelativeClass : public Tango::Command
+class MoveYAxisRelativeCmd : public Tango::Command
 {
 public:
-	MoveYAxisRelativeClass(const char   *name,
+	MoveYAxisRelativeCmd(const char   *name,
 	               Tango::CmdArgType in,
 				   Tango::CmdArgType out,
 				   const char        *in_desc,
@@ -231,11 +231,11 @@ public:
 				   Tango::DispLevel  level)
 	:Command(name,in,out,in_desc,out_desc, level)	{};
 
-	MoveYAxisRelativeClass(const char   *name,
+	MoveYAxisRelativeCmd(const char   *name,
 	               Tango::CmdArgType in,
 				   Tango::CmdArgType out)
 	:Command(name,in,out)	{};
-	~MoveYAxisRelativeClass() {};
+	~MoveYAxisRelativeCmd() {};
 	
 	virtual CORBA::Any *execute (Tango::DeviceImpl *dev, const CORBA::Any &any);
 	virtual bool is_allowed (Tango::DeviceImpl *dev, const CORBA::Any &any)
@@ -244,10 +244,10 @@ public:
 
 
 
-class MoveXAxisRelativeClass : public Tango::Command
+class MoveXAxisRelativeCmd : public Tango::Command
 {
 public:
-	MoveXAxisRelativeClass(const char   *name,
+	MoveXAxisRelativeCmd(const char   *name,
 	               Tango::CmdArgType in,
 				   Tango::CmdArgType out,
 				   const char        *in_desc,
@@ -255,11 +255,11 @@ public:
 				   Tango::DispLevel  level)
 	:Command(name,in,out,in_desc,out_desc, level)	{};
 
-	MoveXAxisRelativeClass(const char   *name,
+	MoveXAxisRelativeCmd(const char   *name,
 	               Tango::CmdArgType in,
 				   Tango::CmdArgType out)
 	:Command(name,in,out)	{};
-	~MoveXAxisRelativeClass() {};
+	~MoveXAxisRelativeCmd() {};
 	
 	virtual CORBA::Any *execute (Tango::DeviceImpl *dev, const CORBA::Any &any);
 	virtual bool is_allowed (Tango::DeviceImpl *dev, const CORBA::Any &any)

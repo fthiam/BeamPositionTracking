@@ -956,7 +956,9 @@ void BeamPositionTracking::write_warningZoneRadius(Tango::WAttribute &attr)
  *	method:	BeamPositionTracking::actuator_system_calibration
  *
  *	description:	method to execute "ActuatorSystemCalibration"
- *	Will estimate new ratio on X and Y translation. This command will write linear ratios on actuator system device, only if axes are in a linear mode
+ *	Will estimate new ratio on X and Y axes (only if axes are in a linear mode).
+ *	To do so, it will record current beam centroid, move each axes with CalibrationStepNbX/YAxis value (set in properties) and record new centroid...
+ *	This feature will then write linear new ratios on actuator system device. 
  *
  *
  */
@@ -1124,6 +1126,7 @@ void BeamPositionTracking::acknowlege_step()
 	}catch(...){
 	}
 }
+
 
 
 

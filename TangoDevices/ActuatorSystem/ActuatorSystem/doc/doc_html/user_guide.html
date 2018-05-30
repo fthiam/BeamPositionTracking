@@ -63,7 +63,8 @@ ActuatorSystem Class<Br>&nbsp;<Br></Td></Tr>
 <Br>&nbsp;<Br><Br>&nbsp;<Br>
 <h2>Introduction:</h2>
 <ul>
-	This device will organize movements on X and Y axes<Br>
+	This device should be used for BeamPositionTracking application only. This device's aim is to organize motors movements on two axes ( X and Y ) 
+in order to move beam centroid position.<Br>
 </ul>
 <Br>
 <Br>
@@ -91,10 +92,7 @@ ActuatorSystem Class<Br>&nbsp;<Br></Td></Tr>
 
 
 <Center>
-This device should be used for BeamPositionTracking application only.
-This device's aim is to organize translations (X and Y axis).
-To use a specific translation (or a rotation) on this device, make sure that a plugin exists already...
-Will also apply ratios (calibration results) on those axes.
+This device should be used for BeamPositionTracking application only. This device's aim is to organize motors movements on two axes ( X and Y ) in order to move beam centroid position. 
 <Br>
 <Br>
 </Center>
@@ -155,8 +153,8 @@ Will also apply ratios (calibration results) on those axes.
 
 <Tr><Td><b><a href=#Dev_DefaultValues>DeviceMode </a></b></Td>
 <Td><Font Size=-1>Tango::DEV_STRING</Font></Td>
-<Td><Font Size=-1>Either : NORMAL, SIMULATED
-In simulated mode, this device will only read state/status and positions from axes, it will not send any cmds....</Font></Td></Tr>
+<Td><Font Size=-1>Either NORMAL or SIMULATED;
+In simulated mode, this device will only read state/status and positions from axes, it will not send any new positions....</Font></Td></Tr>
 
 </Table>
 
@@ -286,10 +284,10 @@ There is no Class properties.<Br><Br>
 <Tr><Td><b>yState</b>: <Font Size=-1>State of Y axis </Font></Td>
 <Td><Center><Font Size=-1>DEV_STATE</Font></Center></Td><Td><Center><Font Size=-1>READ</Font></Center></Td><Td><Center><Font Size=-1>No</Font></Center></Td></Tr>
 
-<Tr><Td><b>isXLinear</b>: <Font Size=-1>If true the xLinearRatio attribute can be written by BeamPositionTracking device if user call </Font></Td>
+<Tr><Td><b>isXLinear</b>: <Font Size=-1>If true the xLinearRatio attribute can be written by BeamPositionTracking device when user call ActuatorSystemCalibration on it.</Font></Td>
 <Td><Center><Font Size=-1>DEV_BOOLEAN</Font></Center></Td><Td><Center><Font Size=-1>READ_WRITE</Font></Center></Td><Td><Center><Font Size=-1>No</Font></Center></Td></Tr>
 
-<Tr><Td><b>isYLinear</b>: <Font Size=-1>If true the yLinearRatio attribute can be written by BeamPositionTracking device if user call </Font></Td>
+<Tr><Td><b>isYLinear</b>: <Font Size=-1>If true the yLinearRatio attribute can be written by BeamPositionTracking device when user call ActuatorSystemCalibration on it.</Font></Td>
 <Td><Center><Font Size=-1>DEV_BOOLEAN</Font></Center></Td><Td><Center><Font Size=-1>READ_WRITE</Font></Center></Td><Td><Center><Font Size=-1>No</Font></Center></Td></Tr>
 
 <Tr><Td><b>isXCalibrated</b>: <Font Size=-1>To confirm that X Axis is properly configured, ready to move</Font></Td>
@@ -423,7 +421,7 @@ The language device desctructor automatically calls the <i> delete_device() </i>
 <A NAME="MoveXAxisRelative"><!-- --></A>
 <h2>5 - MoveXAxisRelative</h2>
 <ul>
-<Li><Strong>Description: </Strong> To move X axis with a relative movement (take one double argument)<Br>&nbsp
+<Li><Strong>Description: </Strong> To move X axis with a relative movement<Br>&nbsp
 <Li><Strong>Argin:<Br>DEV_DOUBLE</Strong>
  : <Br>&nbsp
 <Li><Strong>Argout:<Br>DEV_VOID</Strong>
@@ -437,7 +435,7 @@ The language device desctructor automatically calls the <i> delete_device() </i>
 <A NAME="MoveYAxisRelative"><!-- --></A>
 <h2>6 - MoveYAxisRelative</h2>
 <ul>
-<Li><Strong>Description: </Strong> To move Y axis with a relative movement (take one double argument)<Br>&nbsp
+<Li><Strong>Description: </Strong> To move Y axis with a relative movement <Br>&nbsp
 <Li><Strong>Argin:<Br>DEV_DOUBLE</Strong>
  : <Br>&nbsp
 <Li><Strong>Argout:<Br>DEV_VOID</Strong>
@@ -451,7 +449,7 @@ The language device desctructor automatically calls the <i> delete_device() </i>
 <A NAME="ApplyRelativeMovementOnAxes"><!-- --></A>
 <h2>7 - ApplyRelativeMovementOnAxes</h2>
 <ul>
-<Li><Strong>Description: </Strong> Argin[0] = movementOnXAxis
+<Li><Strong>Description: </Strong> Argin[0] = movementOnXAxis; 
 Argin[1] = movementOnYAxis<Br>&nbsp
 <Li><Strong>Argin:<Br>DEVVAR_DOUBLEARRAY</Strong>
  : <Br>&nbsp

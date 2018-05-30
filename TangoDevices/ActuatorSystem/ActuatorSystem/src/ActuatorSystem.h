@@ -59,7 +59,8 @@ namespace ActuatorSystem_ns
 
 /**
  * Class Description:
- * This device will organize movements on X and Y axes
+ * This device should be used for BeamPositionTracking application only. This device's aim is to organize motors movements on two axes ( X and Y ) 
+ *	in order to move beam centroid position.
  */
 
 /*
@@ -154,8 +155,8 @@ public :
  */
 	Tango::DevDouble	yAxisMinPosition;
 /**
- *	Either : NORMAL, SIMULATED
- *	In simulated mode, this device will only read state/status and positions from axes, it will not send any cmds....
+ *	Either NORMAL or SIMULATED;
+ *	In simulated mode, this device will only read state/status and positions from axes, it will not send any new positions....
  */
 	string	deviceMode;
 //@}
@@ -372,19 +373,19 @@ public :
  */
 	void	stop_axes();
 /**
- * To move X axis with a relative movement (take one double argument)
+ * To move X axis with a relative movement
  *	@param	argin	
  *	@exception DevFailed
  */
 	void	move_xaxis_relative(Tango::DevDouble);
 /**
- * To move Y axis with a relative movement (take one double argument)
+ * To move Y axis with a relative movement 
  *	@param	argin	
  *	@exception DevFailed
  */
 	void	move_yaxis_relative(Tango::DevDouble);
 /**
- * Argin[0] = movementOnXAxis
+ * Argin[0] = movementOnXAxis; 
  *	Argin[1] = movementOnYAxis
  *	@param	argin	
  *	@exception DevFailed
