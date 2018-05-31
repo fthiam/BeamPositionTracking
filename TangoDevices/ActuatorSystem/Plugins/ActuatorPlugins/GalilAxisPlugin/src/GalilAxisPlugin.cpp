@@ -99,6 +99,24 @@ double GalilAxisPlugin::getAxisCurrentPosition()throw (Tango::DevFailed)
 	
 	return (double)positionValue;
 }
+
+// ============================================================================
+// GalilAxisPlugin::getAxisUnit
+// ============================================================================
+std::string GalilAxisPlugin::getAxisUnit()throw (Tango::DevFailed)
+{
+	std::string axisUnit = "" ;
+	//First check if connexion is still alive
+	this->updateStateStatus();
+	if (_stateStatus.isConnexionOperational){
+        std::string posAttrName = "Position";
+		Tango::AttributeInfoEx posAttributeInfo;
+        posAttributeInfo = this->_galilAxisDevice->get_attribute_config(posAttrName);
+        axisUnit = posAttributeInfo.unit;
+	}
+	
+	return axisUnit;
+}
 // ============================================================================
 // GalilAxisPlugin::setAxisPosition
 // ============================================================================

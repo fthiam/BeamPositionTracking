@@ -15,11 +15,9 @@ import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 
-import fr.soleil.comete.box.scalarbox.StringScalarBox;
+import main.java.fr.soleil.comete.bptApp.cometeWrapper.TangoConnection;
 import fr.soleil.comete.swing.Label;
 import fr.soleil.comete.swing.StringButton;
-import fr.soleil.comete.tango.data.service.TangoKey;
-import fr.soleil.comete.tango.data.service.TangoKeyTool;
 
 public class ConfigPanel implements Runnable  {
 	private static final String BPT_DEVICE_CLASS = "BeamPositionTracking";
@@ -32,7 +30,10 @@ public class ConfigPanel implements Runnable  {
 	private static final String X_CALIBRATION_STEP_NUMBER = "CalibrationStepNbXAxis";
 	private static final String Y_CALIBRATION_STEP_NUMBER = "CalibrationStepNbYAxis";
 	private static final String AS_DEVICE_ADRESS = "ActuatorSystemDeviceAdress";
-	private static final String WARM_BEAM_LINE_TRANSLATION_THRESHOLD = "bpt_ui_warmBeamLineTranslationThreshold";
+    private static final String COLD_X_THRESHOLD = "UI_xColdThreshold";
+    private static final String HOT_X_THRESHOLD = "UI_xHotThreshold";
+    private static final String COLD_Y_THRESHOLD = "UI_yColdThreshold";
+    private static final String HOT_Y_THRESHOLD = "UI_yHotThreshold";
     private static final String AXES_ALIASES = "AxesAliases";
 	boolean _bptDeviceReadyToConnect;
 	boolean _bptDeviceAddressHasChange;
@@ -43,7 +44,7 @@ public class ConfigPanel implements Runnable  {
 	StringButton _controlRedirection;
 	
 
-    Label targetDeviceClassLabel = new Label();
+    Label _targetDeviceClassLabel = new Label();
 	
 	//Right panel
 	JPanel _rightPanel;
@@ -58,18 +59,18 @@ public class ConfigPanel implements Runnable  {
 	//Left panel
 	JPanel _leftPanel;
 	// BPT Info
-	Label bptMode;
+	Label _bptMode;
 
 	// X Axis Info
-	Label xPid;
-	Label xMinPosition;
-	Label xMaxPosition;
-	Label xCalibrationStepNumber;
+	Label _xPid;
+	Label _xMinPosition;
+	Label _xMaxPosition;
+	Label _xCalibrationStepNumber;
 	// Y Axis Info
-	Label yPid;
-	Label yMinPosition;
-	Label yMaxPosition;
-	Label yCalibrationStepNumber;
+	Label _yPid;
+	Label _yMinPosition;
+	Label _yMaxPosition;
+	Label _yCalibrationStepNumber;
 	//Axes alias
 	Label _axesAliases;
 	String _xAlias;
@@ -79,25 +80,27 @@ public class ConfigPanel implements Runnable  {
 	boolean _pidInfoInitDone;
 	//AS device init
 	boolean _asDeviceInitDone;
-	Label isXPidInUse;
-	Label xPCoef;
-	Label xICoef;
-	Label xDCoef;
-	Label isYPidInUse;
-	Label yPCoef;
-	Label yICoef;
-	Label yDCoef;
+	Label _isXPidInUse;
+	Label _xPCoef;
+	Label _xICoef;
+	Label _xDCoef;
+	Label _isYPidInUse;
+	Label _yPCoef;
+	Label _yICoef;
+	Label _yDCoef;
 	
 	//specific ui properties
-	Label _bpt_ui_warmBeamLineTranslationThreshold;
-	Label _bpt_ui_coldBeamLineTranslationThreshold;
-	Label _bpt_ui_lastBeamLineInUse;
-	Label _bpt_ui_favoriteBPTDevice;
+	Label _coldXThreshold;
+	Label _hotXThreshold;
+	Label _coldYThreshold;
+	Label _hotYThreshold;
 	
 	//ConfigPannel State
 	boolean _bptReady;
 	boolean _asReady;
 	boolean _axesAliasesInit;
+	
+	TangoConnection _tangoConnection = new TangoConnection();
 	/****************************************************************
 	 *  ConfigPanel() 
 	 *  
@@ -225,32 +228,32 @@ public class ConfigPanel implements Runnable  {
 		//connection status
 		_bptConnectionStatus = new Label();
 		//X properties info
-		xPid = new Label();
-		xMinPosition = new Label();
-		xMaxPosition = new Label();
-		xCalibrationStepNumber = new Label();
+		_xPid = new Label();
+		_xMinPosition = new Label();
+		_xMaxPosition = new Label();
+		_xCalibrationStepNumber = new Label();
 		//Y properties info
-		yPid = new Label();
-		yMinPosition = new Label();
-		yMaxPosition = new Label();
-		yCalibrationStepNumber = new Label();	
+		_yPid = new Label();
+		_yMinPosition = new Label();
+		_yMaxPosition = new Label();
+		_yCalibrationStepNumber = new Label();	
 		//PIDs
-		isXPidInUse = new Label();
-		xPCoef = new Label();
-		xICoef = new Label();
-		xDCoef = new Label();
-		isYPidInUse = new Label();
-		yPCoef = new Label();
-		yICoef = new Label();
-		yDCoef = new Label();
+		_isXPidInUse = new Label();
+		_xPCoef = new Label();
+		_xICoef = new Label();
+		_xDCoef = new Label();
+		_isYPidInUse = new Label();
+		_yPCoef = new Label();
+		_yICoef = new Label();
+		_yDCoef = new Label();
 		//AS 
 		_asDescPanel = new JPanel(new GridLayout(2,0));
 		_asAdressLabel = new Label();
 		//UI - specifics
-		_bpt_ui_warmBeamLineTranslationThreshold = new Label();
-		_bpt_ui_coldBeamLineTranslationThreshold = new Label();
-		_bpt_ui_lastBeamLineInUse = new Label();
-		_bpt_ui_favoriteBPTDevice = new Label();
+		_coldXThreshold = new Label();
+		_coldYThreshold = new Label();
+		_hotXThreshold = new Label();
+		_hotYThreshold = new Label();
 		
 	}
 	
@@ -269,20 +272,16 @@ public class ConfigPanel implements Runnable  {
 		_asReady = false;
 		_bptConnectionStatus.setText("No BeamPositionTracking device connected yet !");
 		_bptDeviceAdress = _bptDeviceAdressTextField.getText();
-		StringScalarBox boxStr = new StringScalarBox();  
-        TangoKey bptStatekey = new TangoKey();
-        try{
-        	TangoKeyTool.registerDeviceClass(bptStatekey, _bptDeviceAdress);
-        	boxStr.connectWidget(targetDeviceClassLabel, bptStatekey);
-        	//boxStr.co
-        	 _bptDeviceReadyToConnect = true;
-        }catch (Exception E){
-
-        	System.out.println("exception connection");
-        	_bptConnectionStatus.setText("Counldn't connect to distant device"
-        								+ "\nPlease check device adress !");	
-        	_bptDeviceReadyToConnect = false;	
+        
+        if(_tangoConnection.connectLabelDeviceClass(_bptDeviceAdress, _targetDeviceClassLabel)){
+        	_bptDeviceReadyToConnect = true;
         }
+    	else{
+    		_bptConnectionStatus.setText("Counldn't connect to distant device"
+					+ "\nPlease check device adress !");	
+    		_bptDeviceReadyToConnect = false;		
+    	}
+        		
 	}
 	/****************************************************************
 	 *  initializeBPTConnection() 
@@ -290,13 +289,18 @@ public class ConfigPanel implements Runnable  {
 	 *  
 	 * **************************************************************/
 	public void initializeBPTConnection(){
-		connectProperty(xPid, _bptDeviceAdress,X_PID_PROP );
-		connectProperty(yPid, _bptDeviceAdress,Y_PID_PROP );
-		connectProperty(xCalibrationStepNumber, _bptDeviceAdress,X_CALIBRATION_STEP_NUMBER );
-		connectProperty(yCalibrationStepNumber, _bptDeviceAdress,Y_CALIBRATION_STEP_NUMBER );
-		connectProperty(_asAdressLabel,_bptDeviceAdress, AS_DEVICE_ADRESS );
-		connectProperty(_axesAliases, _bptDeviceAdress, AXES_ALIASES);
-		connectSpecificsProperties(_bpt_ui_warmBeamLineTranslationThreshold, _bptDeviceAdress, WARM_BEAM_LINE_TRANSLATION_THRESHOLD);
+		_tangoConnection.connectLabelProperty(_tangoConnection.stringType, _bptDeviceAdress, X_PID_PROP, _xPid );
+		_tangoConnection.connectLabelProperty(_tangoConnection.stringType, _bptDeviceAdress, Y_PID_PROP, _yPid );
+		_tangoConnection.connectLabelProperty(_tangoConnection.stringType, _bptDeviceAdress, X_CALIBRATION_STEP_NUMBER, _xCalibrationStepNumber );
+		_tangoConnection.connectLabelProperty(_tangoConnection.stringType, _bptDeviceAdress, Y_CALIBRATION_STEP_NUMBER, _yCalibrationStepNumber );
+		_tangoConnection.connectLabelProperty(_tangoConnection.stringType, _bptDeviceAdress, AS_DEVICE_ADRESS, _asAdressLabel );
+		_tangoConnection.connectLabelProperty(_tangoConnection.stringType, _bptDeviceAdress, AXES_ALIASES, _axesAliases );
+		_tangoConnection.connectLabelProperty(_tangoConnection.stringType, _bptDeviceAdress, AXES_ALIASES, _axesAliases );
+
+		_tangoConnection.connectLabelProperty(_tangoConnection.stringType, _bptDeviceAdress, COLD_X_THRESHOLD, _coldXThreshold );
+		_tangoConnection.connectLabelProperty(_tangoConnection.stringType, _bptDeviceAdress, HOT_X_THRESHOLD, _hotXThreshold );
+		_tangoConnection.connectLabelProperty(_tangoConnection.stringType, _bptDeviceAdress, COLD_Y_THRESHOLD, _coldYThreshold);
+		_tangoConnection.connectLabelProperty(_tangoConnection.stringType, _bptDeviceAdress, HOT_Y_THRESHOLD, _hotYThreshold );
 		
 		_bptConnectionStatus.setText("Device BeamTrackingPosition : " + _bptDeviceAdress + " is connected !");
 		this._bptReady = true;	
@@ -307,7 +311,7 @@ public class ConfigPanel implements Runnable  {
 	 *  
 	 * **************************************************************/
 	public boolean checkBptDeviceClass(){
-		String distantDeviceClass = targetDeviceClassLabel.getText();
+		String distantDeviceClass = _targetDeviceClassLabel.getText();
     	
     	if(!distantDeviceClass.isEmpty()){
 	        if (distantDeviceClass.equals(BPT_DEVICE_CLASS)){
@@ -331,7 +335,6 @@ public class ConfigPanel implements Runnable  {
 		if (!_axesAliases.getText().equals("")){
 			_axesAliasesInit = true;
 			String [] aliases = _axesAliases.getText().split("\n");
-
 			_xAlias = aliases[0];
 			_yAlias = aliases[1];
 		}
@@ -344,25 +347,25 @@ public class ConfigPanel implements Runnable  {
 	public boolean parsePIDs(){
 		boolean xPidInfoInitDone = false;
 		boolean yPidInfoInitDone = false;
-		String xPIDstr = xPid.getText();
-		String yPIDstr = yPid.getText();
+		String xPIDstr = _xPid.getText();
+		String yPIDstr = _yPid.getText();
 
 		//Don't know exactly when property will be filled up
 		if (!xPIDstr.isEmpty()){
 			Scanner s = new Scanner(xPIDstr).useDelimiter("::");
-			isXPidInUse.setText(s.next());
-			xPCoef.setText(s.next());
-			xICoef.setText(s.next());
-			xDCoef.setText(s.next());
+			_isXPidInUse.setText(s.next());
+			_xPCoef.setText(s.next());
+			_xICoef.setText(s.next());
+			_xDCoef.setText(s.next());
 			xPidInfoInitDone = true;
 		}
 		//Don't know exactly when property will be filled up
 		if (!yPIDstr.isEmpty()){
 			Scanner s = new Scanner(yPIDstr).useDelimiter("::");
-			isYPidInUse.setText(s.next());
-			yPCoef.setText(s.next());
-			yICoef.setText(s.next());
-			yDCoef.setText(s.next());
+			_isYPidInUse.setText(s.next());
+			_yPCoef.setText(s.next());
+			_yICoef.setText(s.next());
+			_yDCoef.setText(s.next());
 			yPidInfoInitDone = true;
 		}
 		
@@ -375,35 +378,20 @@ public class ConfigPanel implements Runnable  {
 	 * **************************************************************/
 	public void connectAs(){
 		String asDeviceAdress = _asAdressLabel.getText();
-		if(initTangoconnection(asDeviceAdress, _asState)){
+		Label tmpLabel = new Label();
+		if(_tangoConnection.connectLabelDeviceClass(asDeviceAdress, tmpLabel)){
+			_tangoConnection.connectLabelAttribute(_tangoConnection.stringType, asDeviceAdress+ "/state", "", _asState, true);
 			//INIT PROPERTIES VALUES  !
-			connectProperty(xMinPosition, asDeviceAdress,X_MIN_POSITION );
-			connectProperty(xMaxPosition, asDeviceAdress,X_MAX_POSITION );
-			connectProperty(yMinPosition, asDeviceAdress,Y_MIN_POSITION );
-			connectProperty(yMaxPosition, asDeviceAdress,Y_MAX_POSITION );
+			_tangoConnection.connectLabelProperty(_tangoConnection.stringType, asDeviceAdress, X_MIN_POSITION, _xMinPosition );
+			_tangoConnection.connectLabelProperty(_tangoConnection.stringType, asDeviceAdress, X_MAX_POSITION, _xMaxPosition );
+			_tangoConnection.connectLabelProperty(_tangoConnection.stringType, asDeviceAdress, Y_MIN_POSITION, _yMinPosition );
+			_tangoConnection.connectLabelProperty(_tangoConnection.stringType, asDeviceAdress, Y_MAX_POSITION, _yMaxPosition );
 			this._asReady = true;
 		}
 		else 
 			this._asReady = false;
 	}
-	/****************************************************************
-	 *  initTangoconnection(String deviceAdress, Label stateListener) 
-	 *  
-	 *  
-	 * **************************************************************/
-	public boolean initTangoconnection(String deviceAdress, Label stateListener){
-		StringScalarBox boxStr = new StringScalarBox();  
-		try{
-			//Connect device state
-	        TangoKey stateKey = new TangoKey();
-	        TangoKeyTool.registerAttribute(stateKey, deviceAdress+ "/state");
-	        boxStr.connectWidget(stateListener, stateKey);
-		}catch(Exception E){
-			//couldn't connect device 
-			return false;
-		}
-		return true;
-	}
+	
 	/****************************************************************
 	 *  initGui() 
 	 *  
@@ -446,9 +434,9 @@ public class ConfigPanel implements Runnable  {
 		Label xMaxLimLab = new Label();
 		xMaxLimLab.setText("	Max limit ");
 		xLimitsPanel.add(xMinLimLab);
-		xLimitsPanel.add(xMinPosition);
+		xLimitsPanel.add(_xMinPosition);
 		xLimitsPanel.add(xMaxLimLab);
-		xLimitsPanel.add(xMaxPosition);
+		xLimitsPanel.add(_xMaxPosition);
 		//Y limits
 		JPanel yLimitsPanel = new JPanel(new GridLayout(2,2));	
 		yLimitsPanel.setBorder(BorderFactory.createTitledBorder("Y Axis" ));
@@ -457,9 +445,9 @@ public class ConfigPanel implements Runnable  {
 		Label yMaxLimLab = new Label();
 		yMaxLimLab.setText("	Max limit ");
 		yLimitsPanel.add(yMinLimLab);
-		yLimitsPanel.add(yMinPosition);
+		yLimitsPanel.add(_yMinPosition);
 		yLimitsPanel.add(yMaxLimLab);
-		yLimitsPanel.add(yMaxPosition);
+		yLimitsPanel.add(_yMaxPosition);
 		axesLimitsPanel.add(xLimitsPanel);
 		axesLimitsPanel.add(yLimitsPanel);
 		
@@ -478,13 +466,13 @@ public class ConfigPanel implements Runnable  {
 		
 		JPanel xPPanel = new JPanel(new GridLayout(0,2));
 		xPPanel.add(pXCoefLab);
-		xPPanel.add(xPCoef);
+		xPPanel.add(_xPCoef);
 		JPanel xIPanel = new JPanel(new GridLayout(0,2));
 		xIPanel.add(iXCoefLab);
-		xIPanel.add(xICoef);
+		xIPanel.add(_xICoef);
 		JPanel xDPanel = new JPanel(new GridLayout(0,2));
 		xDPanel.add(dXCoefLab);
-		xDPanel.add(xDCoef);
+		xDPanel.add(_xDCoef);
 		
 		xPIDPanel.add(xPPanel);
 		xPIDPanel.add(xIPanel);
@@ -501,13 +489,41 @@ public class ConfigPanel implements Runnable  {
 		
 		JPanel yPPanel = new JPanel(new GridLayout(0,2));
 		yPPanel.add(pYCoefLab);
-		yPPanel.add(yPCoef);
+		yPPanel.add(_yPCoef);
 		JPanel yIPanel = new JPanel(new GridLayout(0,2));
 		yIPanel.add(iYCoefLab);
-		yIPanel.add(yICoef);
+		yIPanel.add(_yICoef);
 		JPanel yDPanel = new JPanel(new GridLayout(0,2));
 		yDPanel.add(dYCoefLab);
-		yDPanel.add(yDCoef);
+		yDPanel.add(_yDCoef);
+		
+		//Axes thresholds
+		JPanel thresholdPanel = new JPanel(new GridLayout(0,2));
+		thresholdPanel.setBorder(BorderFactory.createTitledBorder("Axes thresholds configuration (in pixels)"));
+		JPanel coldThresholdPanel = new JPanel(new GridLayout(2,2));
+		//cold threshold
+		coldThresholdPanel.setBorder(BorderFactory.createTitledBorder("Cold beam line"));
+		Label coldXLabel = new Label();
+		coldXLabel.setText("X axis ");
+		coldThresholdPanel.add(coldXLabel);
+		coldThresholdPanel.add(_coldXThreshold);
+		Label coldYLabel = new Label();
+		coldYLabel.setText("Y axis ");
+		coldThresholdPanel.add(coldYLabel);
+		coldThresholdPanel.add(_coldYThreshold);
+		//hot threshold
+		JPanel hotThresholdPanel = new JPanel(new GridLayout(2,2));
+		hotThresholdPanel.setBorder(BorderFactory.createTitledBorder("Hot beam line"));
+		Label hotXLabel = new Label();
+		hotXLabel.setText("X axis ");
+		hotThresholdPanel.add(hotXLabel);
+		hotThresholdPanel.add(_hotXThreshold);
+		Label hotYLabel = new Label();
+		hotYLabel.setText("Y axis ");
+		hotThresholdPanel.add(hotYLabel);
+		hotThresholdPanel.add(_hotYThreshold);
+		thresholdPanel.add(coldThresholdPanel);
+		thresholdPanel.add(hotThresholdPanel);
 		
 		yPIDPanel.add(yPPanel);
 		yPIDPanel.add(yIPanel);
@@ -518,6 +534,7 @@ public class ConfigPanel implements Runnable  {
 
 		rightPanel.add(axesLimitsPanel);
 		rightPanel.add(axesPIDsPanel);
+		rightPanel.add(thresholdPanel);
 		rightPanel.setBorder(rightPanelBord);
 		return rightPanel;
 	}
@@ -579,35 +596,6 @@ public class ConfigPanel implements Runnable  {
 	 * **************************************************************/
 	public void showConfigPanel(){
 		_mainFrame.setVisible(true);
-	}
-	/****************************************************************
-	 *  connectStrLabel(Label targetListener, String targetStr, String deviceAdress) 
-	 *  
-	 *  
-	 * **************************************************************/
-	public void connectProperty(Label targetListener, String deviceAdress, String devicePropertyName){
-		StringScalarBox boxStr = new StringScalarBox();  
-		 
-        TangoKey bptStatekey = new TangoKey();
-        TangoKeyTool.registerDeviceProperty(bptStatekey, deviceAdress, devicePropertyName);
-        boxStr.connectWidget(targetListener, bptStatekey);
-	}
-	
-	/****************************************************************
-	 *  connectStrLabel(Label targetListener, String targetStr, String deviceAdress) 
-	 *  
-	 *  
-	 * **************************************************************/
-	public void connectSpecificsProperties(Label targetListener, String deviceAdress, String propertyName){
-		StringScalarBox boxStr = new StringScalarBox();  
-		 
-        TangoKey bptStatekey = new TangoKey();
-        
-        //Specifics => database???
-        //TangoFactory 
-       //TangoKeyTool.(bptStatekey, deviceAdress, targetStr);
-        //boxStr.connectWidget(targetListener, bptStatekey);
-		
 	}
 	/****************************************************************
 	 *  run() 

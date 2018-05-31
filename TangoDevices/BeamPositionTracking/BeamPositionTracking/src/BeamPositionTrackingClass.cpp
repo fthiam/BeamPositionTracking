@@ -397,6 +397,7 @@ void BeamPositionTrackingClass::attribute_factory(vector<Tango::Attr *> &att_lis
 	//	Attribute : warningZoneXCenter
 	warningZoneXCenterAttrib	*warning_zone_xcenter = new warningZoneXCenterAttrib();
 	Tango::UserDefaultAttrProp	warning_zone_xcenter_prop;
+	warning_zone_xcenter_prop.set_unit("Pixels");
 	warning_zone_xcenter_prop.set_description("Define the center of warning zone on X Axis");
 	warning_zone_xcenter->set_default_properties(warning_zone_xcenter_prop);
 	att_list.push_back(warning_zone_xcenter);
@@ -404,6 +405,7 @@ void BeamPositionTrackingClass::attribute_factory(vector<Tango::Attr *> &att_lis
 	//	Attribute : warningZoneYCenter
 	warningZoneYCenterAttrib	*warning_zone_ycenter = new warningZoneYCenterAttrib();
 	Tango::UserDefaultAttrProp	warning_zone_ycenter_prop;
+	warning_zone_ycenter_prop.set_unit("Pixels");
 	warning_zone_ycenter_prop.set_description("Define the center of warning zone on Y Axis");
 	warning_zone_ycenter->set_default_properties(warning_zone_ycenter_prop);
 	att_list.push_back(warning_zone_ycenter);
@@ -411,6 +413,7 @@ void BeamPositionTrackingClass::attribute_factory(vector<Tango::Attr *> &att_lis
 	//	Attribute : warningZoneRadius
 	warningZoneRadiusAttrib	*warning_zone_radius = new warningZoneRadiusAttrib();
 	Tango::UserDefaultAttrProp	warning_zone_radius_prop;
+	warning_zone_radius_prop.set_unit("Pixels");
 	warning_zone_radius_prop.set_description("Define the size of the warning zone ");
 	warning_zone_radius->set_default_properties(warning_zone_radius_prop);
 	att_list.push_back(warning_zone_radius);
@@ -730,6 +733,62 @@ void BeamPositionTrackingClass::set_default_property()
 
 	prop_name = "AxesAliases";
 	prop_desc = "Set alias for X and Y axes here :\nx, y";
+	prop_def  = "";
+	vect_data.clear();
+	if (prop_def.length()>0)
+	{
+		Tango::DbDatum	data(prop_name);
+		data << vect_data ;
+		dev_def_prop.push_back(data);
+		add_wiz_dev_prop(prop_name, prop_desc,  prop_def);
+	}
+	else
+		add_wiz_dev_prop(prop_name, prop_desc);
+
+	prop_name = "UI_xColdThreshold";
+	prop_desc = "For user interface only : default value for xAxisRegulationThreshold when user select a cold beam line configuration.";
+	prop_def  = "";
+	vect_data.clear();
+	if (prop_def.length()>0)
+	{
+		Tango::DbDatum	data(prop_name);
+		data << vect_data ;
+		dev_def_prop.push_back(data);
+		add_wiz_dev_prop(prop_name, prop_desc,  prop_def);
+	}
+	else
+		add_wiz_dev_prop(prop_name, prop_desc);
+
+	prop_name = "UI_xHotThreshold";
+	prop_desc = "For user interface only : default value for xAxisRegulationThreshold when user select a hot beam line configuration.";
+	prop_def  = "";
+	vect_data.clear();
+	if (prop_def.length()>0)
+	{
+		Tango::DbDatum	data(prop_name);
+		data << vect_data ;
+		dev_def_prop.push_back(data);
+		add_wiz_dev_prop(prop_name, prop_desc,  prop_def);
+	}
+	else
+		add_wiz_dev_prop(prop_name, prop_desc);
+
+	prop_name = "UI_yHotThreshold";
+	prop_desc = "For user interface only : default value for yAxisRegulationThreshold when user select a hot beam line configuration.";
+	prop_def  = "";
+	vect_data.clear();
+	if (prop_def.length()>0)
+	{
+		Tango::DbDatum	data(prop_name);
+		data << vect_data ;
+		dev_def_prop.push_back(data);
+		add_wiz_dev_prop(prop_name, prop_desc,  prop_def);
+	}
+	else
+		add_wiz_dev_prop(prop_name, prop_desc);
+
+	prop_name = "UI_yColdThreshold";
+	prop_desc = "For user interface only : default value for yAxisRegulationThreshold when user select a cold beam line configuration.";
 	prop_def  = "";
 	vect_data.clear();
 	if (prop_def.length()>0)

@@ -420,8 +420,11 @@ private :
 
 	double _xPosition;
 	double _yPosition;
+	ASTaskManager::AxesUnits _axesUnits;
 	Tango::DevState _xAxisState;
 	Tango::DevState _yAxisState;
+
+	void setAxesUnits(ASTaskManager::AxesUnits axesUnits);
 
 };
 

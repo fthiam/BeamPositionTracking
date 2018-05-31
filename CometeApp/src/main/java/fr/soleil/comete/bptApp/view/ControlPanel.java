@@ -3,6 +3,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -10,13 +11,12 @@ import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 
+import main.java.fr.soleil.comete.bptApp.cometeWrapper.TangoConnection;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import fr.soleil.comete.box.matrixbox.NumberMatrixBox;
-import fr.soleil.comete.box.scalarbox.BooleanScalarBox;
-import fr.soleil.comete.box.scalarbox.NumberScalarBox;
-import fr.soleil.comete.box.scalarbox.StringScalarBox;
+import fr.soleil.comete.awt.Button;
 import fr.soleil.comete.definition.widget.util.CometeColor;
 import fr.soleil.comete.swing.IconButton;
 import fr.soleil.comete.swing.ImageViewer;
@@ -25,8 +25,6 @@ import fr.soleil.comete.swing.StringButton;
 import fr.soleil.comete.swing.TextArea;
 import fr.soleil.comete.swing.TextField;
 import fr.soleil.comete.swing.WheelSwitch;
-import fr.soleil.comete.tango.data.service.TangoKey;
-import fr.soleil.comete.tango.data.service.TangoKeyTool;
 
 /****************************************************************
  *  PUBLIC CLASS ControlPanel
@@ -50,17 +48,21 @@ public class ControlPanel implements Runnable  {
     private static final String BEAM_X_CENTROID = "xAxisCurrentBeamPosition";
     private static final String BEAM_Y_CENTROID = "yAxisCurrentBeamPosition";
     private static final String LOCK_MODE = "fixedMode";
-    
+    private static final String X_THRESHOLD_ATTR = "xAxisRegulationThreshold";
+    private static final String Y_THRESHOLD_ATTR = "yAxisRegulationThreshold";
+    private static final String COLD_X_THRESHOLD = "UI_xColdThreshold";
+    private static final String HOT_X_THRESHOLD = "UI_xHotThreshold";
+    private static final String COLD_Y_THRESHOLD = "UI_yColdThreshold";
+    private static final String HOT_Y_THRESHOLD = "UI_yHotThreshold";
     private static final String DEVICE_LOCK_MODE_STR = "Static positionning mode!";
     private static final String DEVICE_DYN_MODE_STR = "Dynamic positionning mode!";
-    
     private static final String IMAGE_SENSOR_TYPE = "Lima"; //TO change : plugin name 
     
     
     String _bptDeviceAdress;
     boolean _specificPropertiesInitialized;
 	boolean _bptReadyToOperate;
-	boolean _bptOperating;	
+	boolean _bptRunning;	
 	ConfigPanel _configPanel;
 	JFrame _mainFrame;
 	String _xAlias;
@@ -73,8 +75,9 @@ public class ControlPanel implements Runnable  {
 	//COMPONENTS - LEFT PANEL
 	ImageViewer _viewer;
 	StringButton _configPanelButton;
-	StringButton _startBTButton;
-	StringButton _stopBTButton;
+	StringButton _startBTButtonCMD;
+	StringButton _stopBTButtonCMD;
+	StringButton _trackingButton;
 	Label _xAxisState;
 	TextField _xAxisPosition;
 	IconButton _isXAxisCalibrated;
@@ -97,10 +100,20 @@ public class ControlPanel implements Runnable  {
 	Label _xCentroid;
 	Label _yCentroid;
 	IconButton _lockModeStatus;
-	
+	//axes thresholds
+	Label _currentThresholdMode;
+	WheelSwitch _currentXThreshold;
+	WheelSwitch _currentYThreshold;
+	WheelSwitch _coldXThreshold;
+	WheelSwitch _hotXThreshold;
+	WheelSwitch _coldYThreshold;
+	WheelSwitch _hotYThreshold;
+	boolean _coldBeamLineMode;
+	boolean _hotBeamLineMode;
+	StringButton _switchBeamLineThresholdMode;
 	Label lockStatus;
 	boolean _lockMode;
-	
+	TangoConnection _tangoConnection = new TangoConnection();
 	
 	/****************************************************************
 	 *  ControlPanel (String bptDeviceAdress, String asDeviceAdress, ConfigPanel configPanel)
@@ -112,7 +125,9 @@ public class ControlPanel implements Runnable  {
 		_configPanel = configPanel;
 		_bptReadyToOperate = false;
 		_specificPropertiesInitialized = false;
-		_bptOperating = false;
+		_bptRunning = false;
+		_coldBeamLineMode = false;
+		_hotBeamLineMode = false;
 		_lockMode = true;
 		_xAlias = xAlias;
 		_yAlias = yAlias;
@@ -149,11 +164,63 @@ public class ControlPanel implements Runnable  {
 		refreshStatesColors();
 		refreshBPTState();
 		refreshApplicationCommands();
+		refreshThresholdMode();
 		if(!_specificPropertiesInitialized)
 			initSpecificProperties();
 		if (!_lockMode)
 			getNewSelectedTargetOnImage();
 		updateTargetDraw();
+	}
+	/****************************************************************
+	 *  refreshInterface ()
+	 *  
+	 *  Is beam line in Hot/Cold mode?
+	 * **************************************************************/
+	private void refreshThresholdMode(){
+		
+		//Beam line is in cold mode
+		if ((_coldXThreshold.getValue() == _currentXThreshold.getValue()) &&
+			(_coldYThreshold.getValue() == _currentYThreshold.getValue())) {
+			_currentThresholdMode.setText("Beam line is currently in Cold mode");
+			_switchBeamLineThresholdMode.setText("Set Hot mode");
+			_coldBeamLineMode = true;
+			_hotBeamLineMode = false;
+		}
+		//Beam line is in hot mode
+		else if ((_hotXThreshold.getValue() == _currentXThreshold.getValue()) &&
+				(_hotYThreshold.getValue() == _currentYThreshold.getValue())) {
+			_currentThresholdMode.setText("Beam line is currently in Hot mode");
+			_switchBeamLineThresholdMode.setText("Set Cold mode");
+			_hotBeamLineMode = true;
+			_coldBeamLineMode = false;
+		}
+		//Beam line is in specific mode
+		else{
+			_currentThresholdMode.setText("Beam line is currently in specific mode");
+			_switchBeamLineThresholdMode.setText("Set Cold mode");
+			_hotBeamLineMode = false;
+			_coldBeamLineMode = false;
+		}
+	}
+	/****************************************************************
+	 *  setHotBeamLineMode ()
+	 *  
+	 * **************************************************************/
+	private void setHotBeamLineMode(){
+		_currentXThreshold.setValue(_hotXThreshold.getValue(), true, true);
+		_currentYThreshold.setValue(_hotYThreshold.getValue(), true, true);
+
+		_switchBeamLineThresholdMode.setText("Set Cold mode");
+	}
+	/****************************************************************
+	 *  setColdBeamLineMode ()
+	 *  
+	 * **************************************************************/
+	private void setColdBeamLineMode(){
+		_currentXThreshold.setValue(_coldXThreshold.getValue(), true, true);
+		_currentYThreshold.setValue(_coldYThreshold.getValue(), true, true);
+
+		_switchBeamLineThresholdMode.setText("Set Cold mode");
 	}
 	/****************************************************************
 	 *  initSpecificProperties ()
@@ -164,10 +231,7 @@ public class ControlPanel implements Runnable  {
 	public void initSpecificProperties(){
 		//If sensor = image type
 		if(_sensorType.getText().equals(IMAGE_SENSOR_TYPE)){
-	        NumberScalarBox numberBox = new NumberScalarBox();
-			TangoKey percentageDetectionKey = new TangoKey();
-	        TangoKeyTool.registerAttribute(percentageDetectionKey, _bptDeviceAdress, PERCENTAGE_DETECTION);
-	        numberBox.connectWidgetNoMetaData(_percentageDetection, percentageDetectionKey);
+	        _tangoConnection.connectWheelSwitchAttribute(_tangoConnection.numberType, _bptDeviceAdress, PERCENTAGE_DETECTION, _percentageDetection, false);
 	        Label thresholdLabel = new Label();
 	        thresholdLabel.setText("- Threshold (%) :");
 	        JPanel thresholdPanel = new JPanel(new GridLayout(2, 0));
@@ -259,15 +323,15 @@ public class ControlPanel implements Runnable  {
 		
 		if (bptStateStr.equals("ON")){
 			_bptReadyToOperate = true;
-			_bptOperating = false;
+			_bptRunning = false;
 		}
 		else if (bptStateStr.equals("RUNNING")){
 			_bptReadyToOperate = false;
-			_bptOperating = true;
+			_bptRunning = true;
 		}
 		else {
 			_bptReadyToOperate = false;
-			_bptOperating = false;
+			_bptRunning = false;
 		}
 		
 		//refresh lock state 
@@ -297,15 +361,14 @@ public class ControlPanel implements Runnable  {
 	 *  
 	 * **************************************************************/
 	public void refreshApplicationCommands(){
-		if (_bptReadyToOperate){
-			_startBTButton.setVisible(true);
-			_stopBTButton.setVisible(false);
-		}else if (_bptOperating){
-			_startBTButton.setVisible(false);
-			_stopBTButton.setVisible(true);
+		if (_bptReadyToOperate && !_bptRunning){
+			_trackingButton.setVisible(true);
+			_trackingButton.setText("Start Beam Tracking");
+		}else if (_bptRunning){
+			_trackingButton.setVisible(true);
+			_trackingButton.setText("Stop Beam Tracking");
 		}else{
-			_startBTButton.setVisible(false);
-			_stopBTButton.setVisible(false);
+			_trackingButton.setVisible(false);
 		}
 	}
 	/****************************************************************
@@ -356,9 +419,33 @@ public class ControlPanel implements Runnable  {
 				hideControlPanel();
 			}
         });
+        //hot beam line 
+        _switchBeamLineThresholdMode = new StringButton();
+        _switchBeamLineThresholdMode.setText("Set Cold mode");
+        _switchBeamLineThresholdMode.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (_hotBeamLineMode)
+					setColdBeamLineMode();
+				else if (_coldBeamLineMode)
+					setHotBeamLineMode();
+				else 
+					setColdBeamLineMode();
+			}
+        });
         
+        //Starts and stops tracking
+        _trackingButton = new StringButton();
+        _trackingButton.setText("Start Beam Tracking");
+        _trackingButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (_bptRunning)
+					_stopBTButtonCMD.doClick();
+				else if (!_bptRunning && _bptReadyToOperate)
+					_startBTButtonCMD.doClick();
+			}
+        });
+		
         _sensorType = new Label();
-        
         //BPT State/Status
         _bptState = new Label();
         _bptStatus = new TextArea();
@@ -366,11 +453,9 @@ public class ControlPanel implements Runnable  {
     	_asState = new Label();
     	_asStatus = new TextArea();
         //start beam tracking button 
-		_startBTButton = new StringButton();
-        _startBTButton.setText(START_BEAM_TRACKING_CMD);
+		_startBTButtonCMD = new StringButton();
         //stop beam tracking button
-        _stopBTButton = new StringButton();
-        _stopBTButton.setText(STOP_BEAM_TRACKING_CMD);
+        _stopBTButtonCMD = new StringButton();
         //States
         _xAxisState = new Label();
 		_yAxisState = new Label();
@@ -396,6 +481,13 @@ public class ControlPanel implements Runnable  {
 		//lock mode
 		_lockModeStatus = new IconButton();
 		lockStatus = new Label();
+		_currentXThreshold = new WheelSwitch();
+		_currentYThreshold = new WheelSwitch();
+		_coldXThreshold = new WheelSwitch();
+		_hotXThreshold = new WheelSwitch();
+		_coldYThreshold = new WheelSwitch();
+		_hotYThreshold = new WheelSwitch();
+		_currentThresholdMode = new Label();
 	}
 	
 	/****************************************************************
@@ -404,98 +496,53 @@ public class ControlPanel implements Runnable  {
 	 *  To init tango connexions
 	 * **************************************************************/
 	private void initTangoConnexions(String bptDeviceAdress, String asDeviceAdress){
-		  			
-		//Connect image attribute
-		TangoKey imageViewkey = new TangoKey();
-        TangoKeyTool.registerAttribute(imageViewkey, bptDeviceAdress, IMAGE_ATTR);
-        NumberMatrixBox boxMat = new NumberMatrixBox();
-        boxMat.connectWidget(_viewer, imageViewkey);
-        StringScalarBox boxStr = new StringScalarBox();  
-        BooleanScalarBox booleanBox = new BooleanScalarBox();
-        NumberScalarBox numberBox = new NumberScalarBox();
-       
-        //Sensor type => used to initialized specific stuff in UI
-  		TangoKey sensorTypeKey = new TangoKey();
-  		TangoKeyTool.registerDeviceProperty(sensorTypeKey, _bptDeviceAdress, SENSOR_TYPE_PROP);
-  		boxStr.connectWidgetNoMetaData(_sensorType, sensorTypeKey);  
+		  			      
+        
+        // Image connection
+        _tangoConnection.connectImageViewerAttribute( bptDeviceAdress, IMAGE_ATTR, _viewer);
+        //Sensor type : used to initialized specific stuff in UI
+        _tangoConnection.connectLabelProperty(_tangoConnection.stringType,bptDeviceAdress,SENSOR_TYPE_PROP,_sensorType);
         //Connect BPT state
-        TangoKey bptStatekey = new TangoKey();
-        TangoKeyTool.registerAttribute(bptStatekey, bptDeviceAdress+ "/state");
-        boxStr.connectWidget(_bptState, bptStatekey);
+        _tangoConnection.connectLabelAttribute(_tangoConnection.stringType,bptDeviceAdress+ "/state" ,"",_bptState, true);
         //Connect BPT status
-        TangoKey bptStatuskey = new TangoKey();
-        TangoKeyTool.registerAttribute(bptStatuskey, bptDeviceAdress, DEVICE_STATUS);
-        boxStr.connectWidgetNoMetaData(_bptStatus, bptStatuskey);
+        _tangoConnection.connectTextAreaAttribute(_tangoConnection.stringType, bptDeviceAdress, DEVICE_STATUS, _bptStatus, false);
         //Connect AS state
-        TangoKey asStateKey = new TangoKey();
-        TangoKeyTool.registerAttribute(asStateKey, asDeviceAdress+ "/state");
-        boxStr.connectWidget(_asState, asStateKey);
+        _tangoConnection.connectLabelAttribute(_tangoConnection.stringType,asDeviceAdress+ "/state" ,"",_asState, true);
         //Connect AS status
-        TangoKey asStatusKey = new TangoKey();
-        TangoKeyTool.registerAttribute(asStatusKey, asDeviceAdress, DEVICE_STATUS);
-        boxStr.connectWidgetNoMetaData(_asStatus, asStatusKey);    	
+        _tangoConnection.connectTextAreaAttribute(_tangoConnection.stringType, asDeviceAdress, DEVICE_STATUS, _asStatus, false);
     	
-        //Connect startBeamTracking command
-		TangoKey startBTCMDkey = new TangoKey();
-        TangoKeyTool.registerCommand(startBTCMDkey, bptDeviceAdress, START_BEAM_TRACKING_CMD);
-        boxStr.connectWidgetNoMetaData(_startBTButton, startBTCMDkey);
-        //Connect startBeamTracking command
-      	TangoKey stopBTCMDkey = new TangoKey();
-        TangoKeyTool.registerCommand(stopBTCMDkey, bptDeviceAdress, STOP_BEAM_TRACKING_CMD);
-        boxStr.connectWidgetNoMetaData(_stopBTButton, stopBTCMDkey);
+        //Connect BeamTracking commands
+        _tangoConnection.connectStringButtonCommand(_tangoConnection.stringType, bptDeviceAdress, START_BEAM_TRACKING_CMD, _startBTButtonCMD, false);
+        _tangoConnection.connectStringButtonCommand(_tangoConnection.stringType, bptDeviceAdress, STOP_BEAM_TRACKING_CMD, _stopBTButtonCMD, false);
         //Connect axes states Labels
-        TangoKey xAxisStatekey = new TangoKey();
-        TangoKeyTool.registerAttribute(xAxisStatekey, asDeviceAdress, "xState");
-        boxStr.connectWidgetNoMetaData(_xAxisState, xAxisStatekey);
-        TangoKey yAxisStatekey = new TangoKey();
-        TangoKeyTool.registerAttribute(yAxisStatekey, asDeviceAdress+"/yState");
-        boxStr.connectWidgetNoMetaData(_yAxisState, yAxisStatekey);
+        _tangoConnection.connectLabelAttribute(_tangoConnection.stringType,asDeviceAdress ,"xState",_xAxisState, false);
+        _tangoConnection.connectLabelAttribute(_tangoConnection.stringType,asDeviceAdress ,"yState",_yAxisState, false);
         //Connect axes positions Labels
-        TangoKey xAxisPoskey = new TangoKey();
-        TangoKeyTool.registerAttribute(xAxisPoskey, asDeviceAdress, X_POSITION_ATTR);
-        boxStr.connectWidgetNoMetaData(_xAxisPosition, xAxisPoskey);
-        TangoKey yAxisPoskey = new TangoKey();
-        TangoKeyTool.registerAttribute(yAxisPoskey, asDeviceAdress, Y_POSITION_ATTR);
-        boxStr.connectWidgetNoMetaData(_yAxisPosition, yAxisPoskey);
+        _tangoConnection.connectTextFieldAttribute(_tangoConnection.stringType, asDeviceAdress, X_POSITION_ATTR, _xAxisPosition, false);
+        _tangoConnection.connectTextFieldAttribute(_tangoConnection.stringType, asDeviceAdress, Y_POSITION_ATTR, _yAxisPosition, false);
         //Connect axes Calibration states
-		TangoKey xAxisCalkey = new TangoKey();
-        TangoKeyTool.registerAttribute(xAxisCalkey, asDeviceAdress, X_AXIS_CAL_ATTR);
-        booleanBox.connectWidgetNoMetaData(_isXAxisCalibrated, xAxisCalkey);
-        TangoKey yAxisCalkey = new TangoKey();
-        TangoKeyTool.registerAttribute(yAxisCalkey, asDeviceAdress, Y_AXIS_CAL_ATTR);
-        booleanBox.connectWidgetNoMetaData(_isYAxisCalibrated, yAxisCalkey);
-        //Connect xTarget 
-        TangoKey xTargetKey = new TangoKey();
-        TangoKeyTool.registerAttribute(xTargetKey, bptDeviceAdress, X_TARGET_ATTR);
-        numberBox.connectWidgetNoMetaData(_xTarget, xTargetKey);
-        //Connect yTarget 
-        TangoKey yTargetKey = new TangoKey();
-        TangoKeyTool.registerAttribute(yTargetKey, bptDeviceAdress, Y_TARGET_ATTR);
-        numberBox.connectWidgetNoMetaData(_yTarget, yTargetKey);
-        //Connect xWarnCenter
-        TangoKey xWarnCenterKey = new TangoKey();
-        TangoKeyTool.registerAttribute(xWarnCenterKey, bptDeviceAdress, X_WARN_ZONE_ATTR);
-        numberBox.connectWidgetNoMetaData(_xWarnCenter, xWarnCenterKey);
-        //Connect yWarnCenter
-        TangoKey yWarnCenterKey = new TangoKey();
-        TangoKeyTool.registerAttribute(yWarnCenterKey, bptDeviceAdress, Y_WARN_ZONE_ATTR);
-        numberBox.connectWidgetNoMetaData(_yWarnCenter, yWarnCenterKey);
-        //Connect warnRadius
-        TangoKey warnRadiusKey = new TangoKey();
-        TangoKeyTool.registerAttribute(warnRadiusKey, bptDeviceAdress, WARN_ZONE_RADIUS_ATTR);
-        numberBox.connectWidgetNoMetaData(_warnRadius, warnRadiusKey);
-        //Connect xCentroid
-        TangoKey xCentroidKey = new TangoKey();
-        TangoKeyTool.registerAttribute(xCentroidKey, bptDeviceAdress, BEAM_X_CENTROID);
-        boxStr.connectWidgetNoMetaData(_xCentroid, xCentroidKey);
-        //Connect yCentroid
-        TangoKey yCentroidKey = new TangoKey();
-        TangoKeyTool.registerAttribute(yCentroidKey, bptDeviceAdress, BEAM_Y_CENTROID);
-        boxStr.connectWidgetNoMetaData(_yCentroid, yCentroidKey);
+        _tangoConnection.connectIconButtonAttribute(_tangoConnection.booleanType, asDeviceAdress, X_AXIS_CAL_ATTR, _isXAxisCalibrated, false);
+        _tangoConnection.connectIconButtonAttribute(_tangoConnection.booleanType, asDeviceAdress, Y_AXIS_CAL_ATTR, _isYAxisCalibrated, false);
+        //Connect Targets  
+        _tangoConnection.connectWheelSwitchAttribute(_tangoConnection.numberType, bptDeviceAdress, X_TARGET_ATTR,_xTarget, false);
+        _tangoConnection.connectWheelSwitchAttribute(_tangoConnection.numberType, bptDeviceAdress, Y_TARGET_ATTR,_yTarget, false);
+        //Connect WarningZone
+        _tangoConnection.connectWheelSwitchAttribute(_tangoConnection.numberType, bptDeviceAdress, X_WARN_ZONE_ATTR,_xWarnCenter, false);
+        _tangoConnection.connectWheelSwitchAttribute(_tangoConnection.numberType, bptDeviceAdress, Y_WARN_ZONE_ATTR,_yWarnCenter, false);
+        _tangoConnection.connectWheelSwitchAttribute(_tangoConnection.numberType, bptDeviceAdress, WARN_ZONE_RADIUS_ATTR,_warnRadius, false);
+        //Connect Centroids
+        _tangoConnection.connectLabelAttribute(_tangoConnection.stringType,bptDeviceAdress ,BEAM_X_CENTROID,_xCentroid, false);
+        _tangoConnection.connectLabelAttribute(_tangoConnection.stringType,bptDeviceAdress ,BEAM_Y_CENTROID,_yCentroid, false);
         //Connect lockMode
-        TangoKey lockModeKey = new TangoKey();
-        TangoKeyTool.registerAttribute(lockModeKey, bptDeviceAdress, LOCK_MODE);
-        booleanBox.connectWidgetNoMetaData(_lockModeStatus, lockModeKey);
+        _tangoConnection.connectIconButtonAttribute(_tangoConnection.booleanType, bptDeviceAdress, LOCK_MODE, _lockModeStatus, false);
+        //connect thresholds
+        _tangoConnection.connectWheelSwitchAttribute(_tangoConnection.numberType,bptDeviceAdress ,X_THRESHOLD_ATTR,_currentXThreshold, false);
+        _tangoConnection.connectWheelSwitchAttribute(_tangoConnection.numberType,bptDeviceAdress ,Y_THRESHOLD_ATTR,_currentYThreshold, false);
+        _tangoConnection.connectWheelSwitchProperty(_tangoConnection.numberType,bptDeviceAdress,COLD_X_THRESHOLD,_coldXThreshold);
+        _tangoConnection.connectWheelSwitchProperty(_tangoConnection.numberType,bptDeviceAdress,COLD_Y_THRESHOLD,_coldYThreshold);
+        _tangoConnection.connectWheelSwitchProperty(_tangoConnection.numberType,bptDeviceAdress,HOT_X_THRESHOLD,_hotXThreshold);
+        _tangoConnection.connectWheelSwitchProperty(_tangoConnection.numberType,bptDeviceAdress,HOT_Y_THRESHOLD,_hotYThreshold);
+        
 	}
 	
 	/****************************************************************
@@ -552,7 +599,6 @@ public class ControlPanel implements Runnable  {
 		targetCentroidPanel.add(xTargetLab);
 		targetCentroidPanel.add(yTargetLab);
 		JPanel xtargetPanel = new JPanel(new BorderLayout());
-		//targetCentroidPanel.add(_xTarget);
 		xtargetPanel.add(_xTarget);
 		_xTarget.setPreferredSize(xtargetPanel.getSize());
 		targetCentroidPanel.add(xtargetPanel);
@@ -561,32 +607,42 @@ public class ControlPanel implements Runnable  {
 		centroidPanel.add(_detectorPanel);
 		centroidPanel.add(targetCentroidPanel);
 		
+		//ASSERVISSEMENT LIMITS
+		JPanel asservissementLimits = new JPanel(new GridLayout(0,2));
 		//WARNING ZONE DEFINITION
 		JPanel warningZonePanel = new JPanel(new GridLayout(3,0));
-		warningZonePanel.setBorder(BorderFactory.createTitledBorder("WARNING ZONE DEFINITION" ));
+		warningZonePanel.setBorder(BorderFactory.createTitledBorder("WARNING ZONE : " ));
 		//labels definitions
-		Label warnXLab = new Label();
+		/*Label warnXLab = new Label();
 		warnXLab.setText(_xAlias +" Warning zone center");
 		Label warnYLab = new Label();
 		warnYLab.setText(_yAlias +" Warning zone center");
 		Label warnRadiusLab = new Label();
-		warnRadiusLab.setText("Warning zone radius");
+		warnRadiusLab.setText("Warning zone radius");*/
 		//Panel construction
-		JPanel warningZoneXPanel = new JPanel(new GridLayout(0,2));
-		warningZoneXPanel.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.BLACK));
-		warningZoneXPanel.add(warnXLab);
+		JPanel warningZoneXPanel = new JPanel(new GridLayout(0,1));
+		warningZoneXPanel.setBorder(BorderFactory.createTitledBorder(_xAlias +" center"));
+		//warningZoneXPanel.add(warnXLab);
 		warningZoneXPanel.add(_xWarnCenter);
-		JPanel warningZoneYPanel = new JPanel(new GridLayout(0,2));
-		warningZoneYPanel.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 1, Color.BLACK));
-		warningZoneYPanel.add(warnYLab);
+		JPanel warningZoneYPanel = new JPanel(new GridLayout(0,1));
+		warningZoneYPanel.setBorder(BorderFactory.createTitledBorder(_yAlias +" center"));
+		//warningZoneYPanel.add(warnYLab);
 		warningZoneYPanel.add(_yWarnCenter);
-		JPanel warningZoneRadPanel = new JPanel(new GridLayout(0,2));
-		warningZoneRadPanel.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.BLACK));
-		warningZoneRadPanel.add(warnRadiusLab);
+		JPanel warningZoneRadPanel = new JPanel(new GridLayout(0,1));
+		warningZoneRadPanel.setBorder(BorderFactory.createTitledBorder("Radius"));
+		//warningZoneRadPanel.add(warnRadiusLab);
 		warningZoneRadPanel.add(_warnRadius);
 		warningZonePanel.add(warningZoneXPanel);
 		warningZonePanel.add(warningZoneYPanel);
 		warningZonePanel.add(warningZoneRadPanel);
+		asservissementLimits.setBorder(BorderFactory.createTitledBorder("ASSERVISSEMENT LIMITS" ));
+		asservissementLimits.add(warningZonePanel);
+		JPanel thresholdsPannel = new JPanel(new GridLayout(2,0));
+		thresholdsPannel.setBorder(BorderFactory.createTitledBorder("BEAM LINE THRESHOLD STATUS" ));
+		thresholdsPannel.add(_currentThresholdMode);
+		thresholdsPannel.add(_switchBeamLineThresholdMode);
+		asservissementLimits.add(thresholdsPannel);
+		
 		
 		//BPT SATE/STATUS DEFINITION
 		JPanel bptStatusPanel = new JPanel(new GridLayout(0,2));
@@ -612,7 +668,7 @@ public class ControlPanel implements Runnable  {
 	
 		rightPanel.setBorder(imagePanBord);
 		rightPanel.add(centroidPanel);
-		rightPanel.add(warningZonePanel);
+		rightPanel.add(asservissementLimits);
 		rightPanel.add(bptStatusPanel);
 		rightPanel.add(asStatusPanel);
 		
@@ -633,7 +689,7 @@ public class ControlPanel implements Runnable  {
 		Border imgBrd = BorderFactory.createTitledBorder("Thresholded Image" );
 		_viewer.setBorder(imgBrd);
 		//CMD PANNEL INIT
-		JPanel cmdPanel = new JPanel(new GridLayout(5,0));
+		JPanel cmdPanel = new JPanel(new GridLayout(4,0));
 		//state panel
 		JPanel xStatePanel = new JPanel(new GridLayout(0,3));
 		JPanel yStatePanel = new JPanel(new GridLayout(0,3));
@@ -643,11 +699,10 @@ public class ControlPanel implements Runnable  {
 		_isYAxisCalibrated.setFalseLabel("Axis Not Calibrated");
 		_isYAxisCalibrated.setTrueLabel("Axis Calibrated");
 		_isYAxisCalibrated.setBackground(Color.lightGray);
-		//X PANNEL
+		//Axes states
 		xStatePanel.add(_xAxisState);
 		xStatePanel.add(_xAxisPosition);
 		xStatePanel.add(_isXAxisCalibrated);
-		//Y PANNEL
 		yStatePanel.add(_yAxisState);
 		yStatePanel.add(_yAxisPosition);
 		yStatePanel.add(_isYAxisCalibrated);		
@@ -658,8 +713,7 @@ public class ControlPanel implements Runnable  {
 		
 		cmdPanel.add(xStatePanel);
 		cmdPanel.add(yStatePanel);
-		cmdPanel.add(_startBTButton);
-		cmdPanel.add(_stopBTButton);
+		cmdPanel.add(_trackingButton);
 		cmdPanel.add(_configPanelButton);
 
 		Border imagePanBord = BorderFactory.createTitledBorder("Beam Position" );

@@ -105,7 +105,23 @@ double SimulatedAxisPlugin::getAxisCurrentPosition()throw (Tango::DevFailed){
 	
 	return (double)positionValue;
 }
-
+// ============================================================================
+// SimulatedAxisPlugin::getAxisUnit
+// ============================================================================
+std::string SimulatedAxisPlugin::getAxisUnit()throw (Tango::DevFailed)
+{
+	std::string axisUnit = "" ;
+	//First check if connexion is still alive
+	this->updateStateStatus();
+	if (_stateStatus.isConnexionOperational){
+        std::string posAttrName = "RPositionMoteur";
+		Tango::AttributeInfoEx posAttributeInfo;
+        posAttributeInfo = this->_simulatedAxisDevice->get_attribute_config(posAttrName);
+        axisUnit = posAttributeInfo.unit;
+	}
+	
+	return axisUnit;
+}
 // ============================================================================
 // SimulatedAxisPlugin::setAxisPosition
 // ============================================================================

@@ -46,6 +46,9 @@ class ActuatorInterface : public yat4tango::DevicePlugIn
 	virtual double getAxisCurrentPosition()
 		throw (Tango::DevFailed) = 0;
 
+	virtual std::string getAxisUnit()
+		throw (Tango::DevFailed) = 0;
+
 	// Plugin is supposed to return his state this way: 
 	// - ON -> Device is ready to move
 	// - MOVING -> Device is currently moving

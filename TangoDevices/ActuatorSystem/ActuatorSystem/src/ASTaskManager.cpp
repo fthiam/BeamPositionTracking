@@ -134,6 +134,8 @@ void ASTaskManager::process_message (yat::Message& _msg)
 	        	actuatorPluginInitialisation(m_yAxisPluginType, m_yPluginPath, Y_AXIS_ID)){
 	        	//if creation is ok then start them
 	        	if(startPlugins()){
+	        		//Init axes units
+	        		initAxesUnits();
 	        		//Enable periodic
 					enable_periodic_msg(true);	
 					stateStatus.state = Tango::STANDBY;
@@ -431,10 +433,23 @@ void ASTaskManager::i_stopAxes(){
 //
 //
 //-----------------------------------------------------------------------------
+//+----------------------------------------------------------------------------
+//
+// method :  BPTTaskManager::i_getManagerDataPacket()
+//
+//-----------------------------------------------------------------------------
 ASTaskManager::TaskManagerDataPacket ASTaskManager::i_getManagerDataPacket(){
 
 	yat::MutexLock gardDataMutex(m_dataMutex);
 	return m_managerDataPacket;
+}
+//+----------------------------------------------------------------------------
+//
+// method :  BPTTaskManager::i_getAxesUnits()
+//
+//-----------------------------------------------------------------------------
+ASTaskManager::AxesUnits ASTaskManager::i_getAxesUnits(){
+	return m_axesUnits;
 }
 
 //----------------------------------------------------------------------------
@@ -763,6 +778,17 @@ bool ASTaskManager::startPlugins(){
 		updateTaskStateStatus(stateStatus);
 		return false;
 	}
+}
+//+----------------------------------------------------------------------------
+//
+// method :  ASTaskManager::initAxesUnits()
+// 
+// description : 	To init axes units.
+//
+//-----------------------------------------------------------------------------
+void  ASTaskManager::initAxesUnits(){
+	m_axesUnits.xAxisUnit = m_xActuatorPlugin->getAxisUnit();
+	m_axesUnits.yAxisUnit = m_yActuatorPlugin->getAxisUnit();
 }
 //+----------------------------------------------------------------------------
 //

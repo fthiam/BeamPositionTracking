@@ -308,6 +308,10 @@ void BeamPositionTracking::get_device_property()
 	dev_prop.push_back(Tango::DbDatum("FixedYWarningZoneCenter"));
 	dev_prop.push_back(Tango::DbDatum("FixedWarningZoneRadius"));
 	dev_prop.push_back(Tango::DbDatum("AxesAliases"));
+	dev_prop.push_back(Tango::DbDatum("UI_xColdThreshold"));
+	dev_prop.push_back(Tango::DbDatum("UI_xHotThreshold"));
+	dev_prop.push_back(Tango::DbDatum("UI_yHotThreshold"));
+	dev_prop.push_back(Tango::DbDatum("UI_yColdThreshold"));
 
 	//	Call database and extract values
 	//--------------------------------------------
@@ -505,6 +509,50 @@ void BeamPositionTracking::get_device_property()
 	//	And try to extract AxesAliases value from database
 	if (dev_prop[i].is_empty()==false)	dev_prop[i]  >>  axesAliases;
 
+	//	Try to initialize UI_xColdThreshold from class property
+	cl_prop = ds_class->get_class_property(dev_prop[++i].name);
+	if (cl_prop.is_empty()==false)	cl_prop  >>  uI_xColdThreshold;
+	else {
+		//	Try to initialize UI_xColdThreshold from default device value
+		def_prop = ds_class->get_default_device_property(dev_prop[i].name);
+		if (def_prop.is_empty()==false)	def_prop  >>  uI_xColdThreshold;
+	}
+	//	And try to extract UI_xColdThreshold value from database
+	if (dev_prop[i].is_empty()==false)	dev_prop[i]  >>  uI_xColdThreshold;
+
+	//	Try to initialize UI_xHotThreshold from class property
+	cl_prop = ds_class->get_class_property(dev_prop[++i].name);
+	if (cl_prop.is_empty()==false)	cl_prop  >>  uI_xHotThreshold;
+	else {
+		//	Try to initialize UI_xHotThreshold from default device value
+		def_prop = ds_class->get_default_device_property(dev_prop[i].name);
+		if (def_prop.is_empty()==false)	def_prop  >>  uI_xHotThreshold;
+	}
+	//	And try to extract UI_xHotThreshold value from database
+	if (dev_prop[i].is_empty()==false)	dev_prop[i]  >>  uI_xHotThreshold;
+
+	//	Try to initialize UI_yHotThreshold from class property
+	cl_prop = ds_class->get_class_property(dev_prop[++i].name);
+	if (cl_prop.is_empty()==false)	cl_prop  >>  uI_yHotThreshold;
+	else {
+		//	Try to initialize UI_yHotThreshold from default device value
+		def_prop = ds_class->get_default_device_property(dev_prop[i].name);
+		if (def_prop.is_empty()==false)	def_prop  >>  uI_yHotThreshold;
+	}
+	//	And try to extract UI_yHotThreshold value from database
+	if (dev_prop[i].is_empty()==false)	dev_prop[i]  >>  uI_yHotThreshold;
+
+	//	Try to initialize UI_yColdThreshold from class property
+	cl_prop = ds_class->get_class_property(dev_prop[++i].name);
+	if (cl_prop.is_empty()==false)	cl_prop  >>  uI_yColdThreshold;
+	else {
+		//	Try to initialize UI_yColdThreshold from default device value
+		def_prop = ds_class->get_default_device_property(dev_prop[i].name);
+		if (def_prop.is_empty()==false)	def_prop  >>  uI_yColdThreshold;
+	}
+	//	And try to extract UI_yColdThreshold value from database
+	if (dev_prop[i].is_empty()==false)	dev_prop[i]  >>  uI_yColdThreshold;
+
 
 
 	//	End of Automatic code generation
@@ -528,6 +576,10 @@ void BeamPositionTracking::get_device_property()
 	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "1", "FixedWarningZoneRadius");
 	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "axeX\naxeY\n", "AxesAliases");
 
+	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "5", "UI_xColdThreshold");
+	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "5", "UI_yColdThreshold");
+	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "2", "UI_xHotThreshold");
+	yat4tango::PropertyHelper::create_property_if_empty(this, dev_prop, "2", "UI_yHotThreshold");
 
 }
 //+----------------------------------------------------------------------------
@@ -958,7 +1010,7 @@ void BeamPositionTracking::write_warningZoneRadius(Tango::WAttribute &attr)
  *	description:	method to execute "ActuatorSystemCalibration"
  *	Will estimate new ratio on X and Y axes (only if axes are in a linear mode).
  *	To do so, it will record current beam centroid, move each axes with CalibrationStepNbX/YAxis value (set in properties) and record new centroid...
- *	This feature will then write linear new ratios on actuator system device. 
+ *	This feature will then write linear new ratios on actuator system device.
  *
  *
  */
@@ -1126,21 +1178,5 @@ void BeamPositionTracking::acknowlege_step()
 	}catch(...){
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }	//	namespace

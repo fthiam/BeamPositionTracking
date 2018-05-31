@@ -242,9 +242,34 @@ void ActuatorSystem::init_device()
 	        return;
 	    }
 	    this->_initDone = true;
+	    //Task has been initialized, get axes units 
+	  	setAxesUnits(_taskManager->i_getAxesUnits());
 	}
 }
+//+----------------------------------------------------------------------------
+//
+// method : 		ActuatorSystem::setAxesUnits
+// 
+// description : 	To units on xPosition and yPosition attributes
+//
+//-----------------------------------------------------------------------------
+void ActuatorSystem::setAxesUnits(ASTaskManager::AxesUnits axesUnits){
+	std::string xAxisUnit = axesUnits.xAxisUnit;
+	std::string yAxisUnit = axesUnits.yAxisUnit;
 
+
+	vector<string> vecPositionsAttributes;
+	Tango::DevVarStringArray dvsa_attribute;
+    vecPositionsAttributes.push_back("xPosition");
+    vecPositionsAttributes.push_back("yPosition");
+	dvsa_attribute << vecPositionsAttributes;
+	Tango::AttributeConfigList* seq_conf;
+    seq_conf = get_attribute_config(dvsa_attribute);
+
+    (*seq_conf)[0].unit = xAxisUnit.c_str();
+    (*seq_conf)[1].unit = yAxisUnit.c_str();
+  	set_attribute_config((*seq_conf));
+}
 
 //+----------------------------------------------------------------------------
 //

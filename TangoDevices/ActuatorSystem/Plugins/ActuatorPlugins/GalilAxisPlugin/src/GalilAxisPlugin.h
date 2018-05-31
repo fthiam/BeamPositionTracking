@@ -92,6 +92,9 @@ public:
 	double getAxisCurrentPosition() 
 		throw (Tango::DevFailed);
 
+	std::string getAxisUnit()	
+		throw (Tango::DevFailed);
+
 	AS::ActuatorInterface::ActuatorInterface::AxisStateStatus getAxisStateStatus()
 		throw (Tango::DevFailed);
 		

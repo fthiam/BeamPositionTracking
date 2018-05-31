@@ -76,7 +76,14 @@ public:
 		StateStatus xStateStatus;
 		StateStatus yStateStatus;
 	};
+
+	struct AxesUnits{
+		std::string xAxisUnit;
+		std::string yAxisUnit;
+	};
+
 	//GETTERS
+	AxesUnits i_getAxesUnits();
 	TaskManagerDataPacket i_getManagerDataPacket();
 
 
@@ -106,7 +113,7 @@ private:
 
 	bool actuatorPluginInitialisation(std::string axisPluginType, std::string pluginPath, std::string axisId);
 	bool startPlugins();
-	
+	void initAxesUnits();
 	bool refreshAxes();
     void refreshTaskState();
 	void moveAxisPosition(double relativeMovement, std::string axisId);
@@ -135,14 +142,10 @@ private:
 	
 	//- the Tango device hosting 
     Tango::DeviceImpl * m_hostDev;
-
     bool m_movementStarted;
-
-
     TaskManagerDataPacket m_managerDataPacket;
-
     bool m_initCompleted;
-
+    AxesUnits m_axesUnits;
     bool m_isXAxisCalibrated;
     bool m_isYAxisCalibrated;
 

@@ -187,6 +187,22 @@ public :
  *	x, y
  */
 	vector<string>	axesAliases;
+/**
+ *	For user interface only : default value for xAxisRegulationThreshold when user select a cold beam line configuration.
+ */
+	Tango::DevDouble	uI_xColdThreshold;
+/**
+ *	For user interface only : default value for xAxisRegulationThreshold when user select a hot beam line configuration.
+ */
+	Tango::DevDouble	uI_xHotThreshold;
+/**
+ *	For user interface only : default value for yAxisRegulationThreshold when user select a hot beam line configuration.
+ */
+	Tango::DevDouble	uI_yHotThreshold;
+/**
+ *	For user interface only : default value for yAxisRegulationThreshold when user select a cold beam line configuration.
+ */
+	Tango::DevDouble	uI_yColdThreshold;
 //@}
 
 /**
@@ -402,7 +418,7 @@ public :
 /**
  * Will estimate new ratio on X and Y axes (only if axes are in a linear mode).
  *	To do so, it will record current beam centroid, move each axes with CalibrationStepNbX/YAxis value (set in properties) and record new centroid...
- *	This feature will then write linear new ratios on actuator system device. 
+ *	This feature will then write linear new ratios on actuator system device.
  *	@exception DevFailed
  */
 	void	actuator_system_calibration();
