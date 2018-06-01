@@ -58,20 +58,15 @@ public class ConfigPanel implements Runnable  {
 	JPanel _asDescPanel;
 	//Left panel
 	JPanel _leftPanel;
-	// BPT Info
 	Label _bptMode;
-
-	// X Axis Info
 	Label _xPid;
 	Label _xMinPosition;
 	Label _xMaxPosition;
 	Label _xCalibrationStepNumber;
-	// Y Axis Info
 	Label _yPid;
 	Label _yMinPosition;
 	Label _yMaxPosition;
 	Label _yCalibrationStepNumber;
-	//Axes alias
 	Label _axesAliases;
 	String _xAlias;
 	String _yAlias;
@@ -289,18 +284,18 @@ public class ConfigPanel implements Runnable  {
 	 *  
 	 * **************************************************************/
 	public void initializeBPTConnection(){
-		_tangoConnection.connectLabelProperty(_tangoConnection.stringType, _bptDeviceAdress, X_PID_PROP, _xPid );
-		_tangoConnection.connectLabelProperty(_tangoConnection.stringType, _bptDeviceAdress, Y_PID_PROP, _yPid );
-		_tangoConnection.connectLabelProperty(_tangoConnection.stringType, _bptDeviceAdress, X_CALIBRATION_STEP_NUMBER, _xCalibrationStepNumber );
-		_tangoConnection.connectLabelProperty(_tangoConnection.stringType, _bptDeviceAdress, Y_CALIBRATION_STEP_NUMBER, _yCalibrationStepNumber );
-		_tangoConnection.connectLabelProperty(_tangoConnection.stringType, _bptDeviceAdress, AS_DEVICE_ADRESS, _asAdressLabel );
-		_tangoConnection.connectLabelProperty(_tangoConnection.stringType, _bptDeviceAdress, AXES_ALIASES, _axesAliases );
-		_tangoConnection.connectLabelProperty(_tangoConnection.stringType, _bptDeviceAdress, AXES_ALIASES, _axesAliases );
+		_tangoConnection.connectProperty(_tangoConnection.stringType, _bptDeviceAdress, X_PID_PROP, _xPid );
+		_tangoConnection.connectProperty(_tangoConnection.stringType, _bptDeviceAdress, Y_PID_PROP, _yPid );
+		_tangoConnection.connectProperty(_tangoConnection.stringType, _bptDeviceAdress, X_CALIBRATION_STEP_NUMBER, _xCalibrationStepNumber );
+		_tangoConnection.connectProperty(_tangoConnection.stringType, _bptDeviceAdress, Y_CALIBRATION_STEP_NUMBER, _yCalibrationStepNumber );
+		_tangoConnection.connectProperty(_tangoConnection.stringType, _bptDeviceAdress, AS_DEVICE_ADRESS, _asAdressLabel );
+		_tangoConnection.connectProperty(_tangoConnection.stringType, _bptDeviceAdress, AXES_ALIASES, _axesAliases );
+		_tangoConnection.connectProperty(_tangoConnection.stringType, _bptDeviceAdress, AXES_ALIASES, _axesAliases );
 
-		_tangoConnection.connectLabelProperty(_tangoConnection.stringType, _bptDeviceAdress, COLD_X_THRESHOLD, _coldXThreshold );
-		_tangoConnection.connectLabelProperty(_tangoConnection.stringType, _bptDeviceAdress, HOT_X_THRESHOLD, _hotXThreshold );
-		_tangoConnection.connectLabelProperty(_tangoConnection.stringType, _bptDeviceAdress, COLD_Y_THRESHOLD, _coldYThreshold);
-		_tangoConnection.connectLabelProperty(_tangoConnection.stringType, _bptDeviceAdress, HOT_Y_THRESHOLD, _hotYThreshold );
+		_tangoConnection.connectProperty(_tangoConnection.stringType, _bptDeviceAdress, COLD_X_THRESHOLD, _coldXThreshold );
+		_tangoConnection.connectProperty(_tangoConnection.stringType, _bptDeviceAdress, HOT_X_THRESHOLD, _hotXThreshold );
+		_tangoConnection.connectProperty(_tangoConnection.stringType, _bptDeviceAdress, COLD_Y_THRESHOLD, _coldYThreshold);
+		_tangoConnection.connectProperty(_tangoConnection.stringType, _bptDeviceAdress, HOT_Y_THRESHOLD, _hotYThreshold );
 		
 		_bptConnectionStatus.setText("Device BeamTrackingPosition : " + _bptDeviceAdress + " is connected !");
 		this._bptReady = true;	
@@ -380,12 +375,12 @@ public class ConfigPanel implements Runnable  {
 		String asDeviceAdress = _asAdressLabel.getText();
 		Label tmpLabel = new Label();
 		if(_tangoConnection.connectLabelDeviceClass(asDeviceAdress, tmpLabel)){
-			_tangoConnection.connectLabelAttribute(_tangoConnection.stringType, asDeviceAdress+ "/state", "", _asState, true);
+			_tangoConnection.connectAttribute(_tangoConnection.stringType, asDeviceAdress+ "/state", "", _asState, true);
 			//INIT PROPERTIES VALUES  !
-			_tangoConnection.connectLabelProperty(_tangoConnection.stringType, asDeviceAdress, X_MIN_POSITION, _xMinPosition );
-			_tangoConnection.connectLabelProperty(_tangoConnection.stringType, asDeviceAdress, X_MAX_POSITION, _xMaxPosition );
-			_tangoConnection.connectLabelProperty(_tangoConnection.stringType, asDeviceAdress, Y_MIN_POSITION, _yMinPosition );
-			_tangoConnection.connectLabelProperty(_tangoConnection.stringType, asDeviceAdress, Y_MAX_POSITION, _yMaxPosition );
+			_tangoConnection.connectProperty(_tangoConnection.stringType, asDeviceAdress, X_MIN_POSITION, _xMinPosition );
+			_tangoConnection.connectProperty(_tangoConnection.stringType, asDeviceAdress, X_MAX_POSITION, _xMaxPosition );
+			_tangoConnection.connectProperty(_tangoConnection.stringType, asDeviceAdress, Y_MIN_POSITION, _yMinPosition );
+			_tangoConnection.connectProperty(_tangoConnection.stringType, asDeviceAdress, Y_MAX_POSITION, _yMaxPosition );
 			this._asReady = true;
 		}
 		else 
@@ -559,18 +554,7 @@ public class ConfigPanel implements Runnable  {
 
 		_bptConnectionStatus.setText("No BeamPositionTracking device connected yet !");
 		deviceBPTconnection.add(_bptConnectionStatus);
-		
-		//AS connection
-		/*asDeviceAdressTextField.setBorder(new TitledBorder("AS adress"));
-		JPanel deviceASconnectionStateButton = new JPanel(new GridLayout(0,2));
-		deviceASconnectionStateButton.add(_connectAS);
-		deviceASconnectionStateButton.add(_asState);
-		JPanel deviceASconnection = new JPanel(new GridLayout(2,0));
-		deviceASconnection.add(asDeviceAdressTextField);
-		deviceASconnection.add(deviceASconnectionStateButton);*/
-		
 
-		
 		_asDescPanel.setBorder(new TitledBorder("Actuator system paired :"));
 		_asDescPanel.add(_asAdressLabel);
 		_asDescPanel.add(_asState);
@@ -611,6 +595,5 @@ public class ConfigPanel implements Runnable  {
 			} catch (InterruptedException e) {
 			}
 		}
-		
 	}
 }
