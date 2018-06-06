@@ -1,8 +1,8 @@
-package main.java.fr.soleil.comete.bptApp;
+package fr.soleil.comete.bptApp;
 
+import fr.soleil.comete.bptApp.view.ConfigPanel;
+import fr.soleil.comete.bptApp.view.ControlPanel;
 import fr.soleil.comete.swing.Panel;
-import main.java.fr.soleil.comete.bptApp.view.ConfigPanel;
-import main.java.fr.soleil.comete.bptApp.view.ControlPanel;
 
 public class BeamPositionTracking {
 

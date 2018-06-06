@@ -1,8 +1,11 @@
-package main.java.fr.soleil.comete.bptApp.view;
+package fr.soleil.comete.bptApp.view;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
@@ -11,20 +14,13 @@ import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 
-import main.java.fr.soleil.comete.bptApp.cometeWrapper.TangoConnection;
-
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.concurrent.TimeUnit;
-
-import fr.soleil.comete.awt.Button;
-import fr.soleil.comete.definition.widget.util.CometeColor;
+import fr.soleil.comete.bptApp.cometeWrapper.TangoConnection;
+import fr.soleil.comete.definition.widget.util.Gradient;
 import fr.soleil.comete.swing.IconButton;
 import fr.soleil.comete.swing.ImageViewer;
 import fr.soleil.comete.swing.Label;
 import fr.soleil.comete.swing.StringButton;
 import fr.soleil.comete.swing.TextArea;
-import fr.soleil.comete.swing.TextField;
 import fr.soleil.comete.swing.WheelSwitch;
 
 /****************************************************************
@@ -80,10 +76,10 @@ public class ControlPanel implements Runnable  {
 	StringButton _stopBTButtonCMD;
 	StringButton _trackingButton;
 	Label _xAxisState;
-	TextField _xAxisPosition;
+	Label _xAxisPosition;
 	IconButton _isXAxisCalibrated;
 	Label _yAxisState;
-	TextField _yAxisPosition;
+	Label _yAxisPosition;
 	IconButton _isYAxisCalibrated;
 	
 	//COMPONENTS - RIGHT PANEL
@@ -206,8 +202,6 @@ public class ControlPanel implements Runnable  {
 	 *  To refresh interface 
 	 * **************************************************************/
 	private void refreshInterface(){
-		refreshImageSize();
-		refreshStatesColors();
 		refreshBPTState();
 		refreshApplicationCommands();
 		refreshThresholdMode();
@@ -246,32 +240,6 @@ public class ControlPanel implements Runnable  {
 			_switchBeamLineThresholdMode.setText("Set Cold mode");
 			_hotBeamLineMode = false;
 			_coldBeamLineMode = false;
-		}
-	}
-	/****************************************************************
-	 *  refreshImageSize ()
-	 *  
-	 *  Will refresh image size only if mainFrame dimensions has changed
-	 * **************************************************************/
-	public void refreshImageSize(){
-		int newXFrameDim = _mainFrame.getSize().width;
-		int newYFrameDim = _mainFrame.getSize().height;
-		
-		if(!_firstImageSizeFit){
-			//first refresh => need to wait for the viewer to be fully construct (1 second)
-			try {
-				TimeUnit.SECONDS.sleep(1);
-			} catch (InterruptedException e) {
-				//Noop
-			}
-		}
-
-		if (newXFrameDim!=_xOldFrameDim || newYFrameDim!=_yOldFrameDim){
-			_firstImageSizeFit = true;
-			_xOldFrameDim = newXFrameDim;
-			_yOldFrameDim = newYFrameDim;
-			//Update image size
-			_viewer.setAutoZoom(true);
 		}
 	}
 	/****************************************************************
@@ -318,7 +286,6 @@ public class ControlPanel implements Runnable  {
 		double []point = {_xTarget.getValue(), _yTarget.getValue()};
 		_viewer.setBeamPoint(point);
 		_viewer.getBeamPoint();
-		_viewer.setBeamColor(Color.black);
 		_viewer.setDrawBeamPosition(true);
 	}
 	/****************************************************************
@@ -380,29 +347,6 @@ public class ControlPanel implements Runnable  {
 		}
 	}
 	/****************************************************************
-	 *  refreshStatesColors ()
-	 *  
-	 *  
-	 * **************************************************************/
-	public void refreshStatesColors(){
-		String xState = _xAxisState.getText();
-		String yState = _yAxisState.getText();
-		
-		if (xState.equals("ON"))
-			_xAxisState.setCometeBackground(CometeColor.GREEN);
-		else if (xState.equals("MOVING"))
-			_xAxisState.setCometeBackground(CometeColor.CYAN);
-		else 
-			_xAxisState.setCometeBackground(CometeColor.ORANGE);
-		
-		if (yState.equals("ON"))
-			_yAxisState.setCometeBackground(CometeColor.GREEN);
-		else if (yState.equals("MOVING"))
-			_yAxisState.setCometeBackground(CometeColor.CYAN);
-		else 
-			_yAxisState.setCometeBackground(CometeColor.ORANGE);
-	}
-	/****************************************************************
 	 *  initComponents() 
 	 *  
 	 *  To init components
@@ -418,6 +362,12 @@ public class ControlPanel implements Runnable  {
                 selectionMenu.add(containerFactory.createMenuItem(getAction(MODE_ANGLE_ACTION)));
             }
         };
+        _viewer.setAlwaysFitMaxSize(true);
+        Gradient gradient = new Gradient();
+        gradient.buildMonochromeGradient();
+       
+        _viewer.setGradient(gradient);
+        _viewer.setBeamColor(Color.RED);
         //Control access
         _configPanelButton = new StringButton();
         _configPanelButton.setText("BPT Configuration");
@@ -468,8 +418,8 @@ public class ControlPanel implements Runnable  {
         _xAxisState = new Label();
 		_yAxisState = new Label();
 		//Axes positions 
-		_xAxisPosition = new TextField();
-		_yAxisPosition = new TextField();
+		_xAxisPosition = new Label();
+		_yAxisPosition = new Label();
 		//Axes calibration state
 		_isXAxisCalibrated = new IconButton();
 		_isYAxisCalibrated = new IconButton();
@@ -521,8 +471,8 @@ public class ControlPanel implements Runnable  {
         _tangoConnection.connectCommand(_tangoConnection.stringType, bptDeviceAdress, START_BEAM_TRACKING_CMD, _startBTButtonCMD, false);
         _tangoConnection.connectCommand(_tangoConnection.stringType, bptDeviceAdress, STOP_BEAM_TRACKING_CMD, _stopBTButtonCMD, false);
         //Connect axes states Labels
-        _tangoConnection.connectAttribute(_tangoConnection.stringType,asDeviceAdress ,"xState",_xAxisState, false);
-        _tangoConnection.connectAttribute(_tangoConnection.stringType,asDeviceAdress ,"yState",_yAxisState, false);
+        _tangoConnection.connectAttribute(_tangoConnection.stringType,asDeviceAdress ,"xState",_xAxisState, true);
+        _tangoConnection.connectAttribute(_tangoConnection.stringType,asDeviceAdress ,"yState",_yAxisState, true);
         //Connect axes positions Labels
         _tangoConnection.connectAttribute(_tangoConnection.stringType, asDeviceAdress, X_POSITION_ATTR, _xAxisPosition, false);
         _tangoConnection.connectAttribute(_tangoConnection.stringType, asDeviceAdress, Y_POSITION_ATTR, _yAxisPosition, false);

@@ -1,4 +1,4 @@
-package main.java.fr.soleil.comete.bptApp.cometeWrapper;
+package fr.soleil.comete.bptApp.cometeWrapper;
 
 import fr.soleil.comete.box.matrixbox.NumberMatrixBox;
 import fr.soleil.comete.box.scalarbox.BooleanScalarBox;
@@ -44,10 +44,14 @@ public class TangoConnection {
 		else
 			TangoKeyTool.registerAttribute(tangoKey, deviceAdress, attributeName);
 
-		if (metaData)
-			box.connectWidget(component, tangoKey);
-		else 
-			box.connectWidgetNoMetaData(component, tangoKey);
+//		if (metaData)
+//			box.connectWidget(component, tangoKey);
+//		else 
+//			box.connectWidgetNoMetaData(component, tangoKey);
+		if(!metaData) {
+			box.setColorEnabled(component, false);
+		}
+		box.connectWidget(component, tangoKey);
 	}
 	/****************************************************************
 	 *  connectAttribute 

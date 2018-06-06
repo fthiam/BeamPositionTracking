@@ -1,23 +1,26 @@
-package main.java.fr.soleil.comete.bptApp.view;
-
-
+package fr.soleil.comete.bptApp.view;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Scanner;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingWorker;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 
-import main.java.fr.soleil.comete.bptApp.cometeWrapper.TangoConnection;
+import fr.soleil.comete.bptApp.cometeWrapper.TangoConnection;
 import fr.soleil.comete.swing.Label;
 import fr.soleil.comete.swing.StringButton;
+import fr.soleil.lib.project.awt.WindowUtils;
+import fr.soleil.lib.project.swing.dialog.ProgressDialog;
 
 public class ConfigPanel implements Runnable  {
 	private static final String BPT_DEVICE_CLASS = "BeamPositionTracking";
@@ -42,6 +45,7 @@ public class ConfigPanel implements Runnable  {
 	ConfigPanel _configPanel;
 	static ControlPanel _controlPanel;
 	StringButton _controlRedirection;
+	private ProgressDialog progressDialog;
 	
 
     Label _targetDeviceClassLabel = new Label();
@@ -115,6 +119,7 @@ public class ConfigPanel implements Runnable  {
 		initComponents();
 		initGui();
 		run();
+		
 	}
 	/****************************************************************
 	 *  refreshInterface() 
@@ -175,9 +180,7 @@ public class ConfigPanel implements Runnable  {
 			public void actionPerformed(ActionEvent arg0) {
 				//Object control panel not created yet
 				if (_controlPanel == null && !_asAdressLabel.getText().isEmpty()){	
-					
-
-					//TODO GET new LABELS SOMEWHERE !!!!					
+							
 					_controlPanel = new ControlPanel(_bptDeviceAdressTextField.getText(),
 							 						  _asAdressLabel.getText(),
 							 						  _configPanel, 
@@ -203,7 +206,8 @@ public class ConfigPanel implements Runnable  {
 		});
 		
 		//Devices Address
-		_bptDeviceAdressTextField = new JTextField("Simulation/BeamPositionTracking/beampositiontracking", 20);
+		_bptDeviceAdressTextField = new JTextField(getUserPreference("bptFavoriteDevice"), 20);
+
 		//States
 		_bptState = new Label();
 		_asState = new Label();		
@@ -251,13 +255,23 @@ public class ConfigPanel implements Runnable  {
 		_hotYThreshold = new Label();
 		
 	}
-	
 	/****************************************************************
 	 *  connectBpt() 
 	 *  
 	 *  
 	 * **************************************************************/
 	public void connectBpt(){
+		if (progressDialog==null) {
+			progressDialog = new ProgressDialog(WindowUtils.getWindowForComponent(_connectBPT));
+			progressDialog.setProgressIndeterminate(true);
+		}
+		if(!progressDialog.isVisible()) {
+			progressDialog.setTitle("Connecting...");
+			progressDialog.setMainMessage("Connecting BPT...");
+			progressDialog.pack();
+			progressDialog.setLocationRelativeTo(_connectBPT);
+			progressDialog.setVisible(true);
+		}
 		
 		//check if bpt address has changed => to update control panel 
 		if (!_bptDeviceAdressTextField.getText().equals(_bptDeviceAdress))
@@ -267,16 +281,30 @@ public class ConfigPanel implements Runnable  {
 		_asReady = false;
 		_bptConnectionStatus.setText("No BeamPositionTracking device connected yet !");
 		_bptDeviceAdress = _bptDeviceAdressTextField.getText();
-        
-        if(_tangoConnection.connectLabelDeviceClass(_bptDeviceAdress, _targetDeviceClassLabel)){
-        	_bptDeviceReadyToConnect = true;
-        }
-    	else{
-    		_bptConnectionStatus.setText("Counldn't connect to distant device"
-					+ "\nPlease check device adress !");	
-    		_bptDeviceReadyToConnect = false;		
-    	}
-        		
+		_connectBPT.setEnabled(false);
+        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+			
+			@Override
+			protected Void doInBackground() throws Exception {
+				if(_tangoConnection.connectLabelDeviceClass(_bptDeviceAdress, _targetDeviceClassLabel)){
+		        	_bptDeviceReadyToConnect = true;
+		        } else {
+		        	_bptDeviceReadyToConnect = false;
+		        }
+				return null;
+			}
+			@Override
+			protected void done() {
+				_connectBPT.setEnabled(true);
+				if(!_bptDeviceReadyToConnect) {
+		    		_bptConnectionStatus.setText("Counldn't connect to distant device"
+							+ "\nPlease check device adress !");	
+				}
+		        progressDialog.setVisible(false);
+			}
+		};
+		setUserPreference ("bptFavoriteDevice", _bptDeviceAdressTextField.getText());
+		worker.execute();
 	}
 	/****************************************************************
 	 *  initializeBPTConnection() 
@@ -594,6 +622,29 @@ public class ConfigPanel implements Runnable  {
 				refreshInterface();
 			} catch (InterruptedException e) {
 			}
+		}
+	}
+	/****************************************************************
+	 *  getUserPreference(String prefName) 
+	 *  
+	 *  
+	 * **************************************************************/
+	private String getUserPreference(String prefName) {
+		Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
+		return prefs.get(prefName, "Enter/Here/BeamPositionDeviceAdress");
+	}
+	/****************************************************************
+	 *  setUserPreference(String prefName, String value)
+	 *  
+	 *  
+	 * **************************************************************/
+	private void setUserPreference(String prefName, String value) {
+		Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
+		prefs.put(prefName, value);
+		try {
+			prefs.flush();
+		} catch (BackingStoreException e) {
+			e.printStackTrace();
 		}
 	}
 }
