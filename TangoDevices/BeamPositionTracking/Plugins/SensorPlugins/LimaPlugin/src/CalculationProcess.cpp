@@ -281,7 +281,8 @@ void CalculationProcess::calculBeam()
 		else{
 			w_result.m_centroidCenterX = w_moments.m10 / w_moments.m00;
 			w_result.m_centroidCenterY = w_moments.m01 / w_moments.m00;
-
+//w_result.m_centroidCenterX = w_result.m_centroidCenterX + 0.1;
+//w_result.m_centroidCenterY = w_result.m_centroidCenterY + 0.1;
 		//	std::cout<<"w_result.m_centroidCenterX =  "<<w_result.m_centroidCenterX<<std::endl;
 		}
 	}

@@ -598,8 +598,8 @@ void BeamPositionTracking::always_executed_hook()
 			// Get task beam data 
 			BPTTaskManager::ManagerDataPacket managerDataPacket = m_taskManager->i_getManagerDataPacket();
 			// Update attributs values 
-			m_xBeamPositionInPixels = (short)managerDataPacket.beamDiagnostic.xBeamPostionPixels;
-			m_yBeamPositionInPixels = (short)managerDataPacket.beamDiagnostic.yBeamPostionPixels;
+			m_xBeamPositionInPixels = managerDataPacket.beamDiagnostic.xBeamPostionPixels;
+			m_yBeamPositionInPixels = managerDataPacket.beamDiagnostic.yBeamPostionPixels;
 			m_computedTime = managerDataPacket.computedTime;
 
 			m_imageHigh = managerDataPacket.beamDiagnostic.imgHigh;
@@ -1178,5 +1178,6 @@ void BeamPositionTracking::acknowlege_step()
 	}catch(...){
 	}
 }
+
 
 }	//	namespace

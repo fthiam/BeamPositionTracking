@@ -95,8 +95,8 @@ public :
 		Tango::DevShort	attr_xAxisTarget_write;
 		Tango::DevShort	*attr_yAxisTarget_read;
 		Tango::DevShort	attr_yAxisTarget_write;
-		Tango::DevShort	*attr_xAxisCurrentBeamPosition_read;
-		Tango::DevShort	*attr_yAxisCurrentBeamPosition_read;
+		Tango::DevDouble	*attr_xAxisCurrentBeamPosition_read;
+		Tango::DevDouble	*attr_yAxisCurrentBeamPosition_read;
 		Tango::DevDouble	*attr_warningZoneXCenter_read;
 		Tango::DevDouble	attr_warningZoneXCenter_write;
 		Tango::DevDouble	*attr_warningZoneYCenter_read;
@@ -475,9 +475,9 @@ private :
 
 	BPTTaskManager::Target m_target;
 
-	short m_xBeamPositionInPixels;
+	double m_xBeamPositionInPixels;
 
-	short m_yBeamPositionInPixels;
+	double m_yBeamPositionInPixels;
 
 	ushort m_xAxisRegulationThreshold;
 

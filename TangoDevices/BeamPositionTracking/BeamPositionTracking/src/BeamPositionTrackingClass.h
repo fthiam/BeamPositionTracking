@@ -142,7 +142,7 @@ public:
 class yAxisCurrentBeamPositionAttrib: public Tango::Attr
 {
 public:
-	yAxisCurrentBeamPositionAttrib():Attr("yAxisCurrentBeamPosition", Tango::DEV_SHORT, Tango::READ) {};
+	yAxisCurrentBeamPositionAttrib():Attr("yAxisCurrentBeamPosition", Tango::DEV_DOUBLE, Tango::READ) {};
 	~yAxisCurrentBeamPositionAttrib() {};
 	
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
@@ -154,7 +154,7 @@ public:
 class xAxisCurrentBeamPositionAttrib: public Tango::Attr
 {
 public:
-	xAxisCurrentBeamPositionAttrib():Attr("xAxisCurrentBeamPosition", Tango::DEV_SHORT, Tango::READ) {};
+	xAxisCurrentBeamPositionAttrib():Attr("xAxisCurrentBeamPosition", Tango::DEV_DOUBLE, Tango::READ) {};
 	~xAxisCurrentBeamPositionAttrib() {};
 	
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
