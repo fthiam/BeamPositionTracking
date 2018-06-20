@@ -877,6 +877,14 @@ void BPTTaskManager::periodicJob(){
 //
 //-----------------------------------------------------------------------------
 void BPTTaskManager::runBeamTracking(){
+
+	StateStatus stateStatus;
+	if(m_simulatedMode){
+		stateStatus.state = Tango::RUNNING;
+		stateStatus.status = "[SIMULATED MODE ACTIVE]";
+	 	updateTaskStateStatus(stateStatus);
+	}
+
 	//Initialize data for tracking 
 	double xCentroidSum = 0;
 	double yCentroidSum = 0;
@@ -906,38 +914,56 @@ void BPTTaskManager::runBeamTracking(){
 		errorYInput = 0;
 	}
 
- 	//If PID is enabled, we use the corresponding corrector to estimate error
+ 	//X AXIS  ---  If PID is enabled, we use the corresponding corrector to estimate error
  	if (m_xAxisData.axisInfo.PIDCoefficients.isPIDEnabled && (errorXInput != 0) ){
  		//Apply new step on PID corrector
  		m_pidXCorrector->newStepValue(errorXInput, 1);//(double)loopDuration.count());
  		//In PID mode, with an integral component, PID corrector will directly send new position back 
  		if (m_xAxisData.axisInfo.PIDCoefficients.I != 0){
  			//Write new position on actuator system (instead of an error input)
- 			Tango::DeviceAttribute* positionToWrite = NULL;
- 			std::cout<<"newStepValue = >  m_pidXCorrector->getNewPosition() = "<< m_pidXCorrector->getNewPosition()<<std::endl;
-			positionToWrite = new Tango::DeviceAttribute(ATTR_X_POSITION_STR, m_pidXCorrector->getNewPosition());
-			writeAttributeOnActuatorSystem(*positionToWrite);
- 			//Error has been take care of
+ 			double newPositionX = m_pidXCorrector->getNewPosition();
+ 			if(!m_simulatedMode){
+ 				Tango::DeviceAttribute* positionToWrite = NULL;
+				positionToWrite = new Tango::DeviceAttribute(ATTR_X_POSITION_STR, newPositionX);
+				writeAttributeOnActuatorSystem(*positionToWrite);
+ 				delete positionToWrite;
+			}else{		
+				ostringstream convertXPos; 
+				convertXPos<<newPositionX;
+				std::string xPositionStr = convertXPos.str();
+				stateStatus.status =	stateStatus.status + "\n[ABSOLUTE] X axis should move to " + xPositionStr;
+				updateTaskStateStatus(stateStatus);
+			}
+ 			//Error has been taking care of by setting axis to a new position
  			errorXInput = 0;
- 			delete positionToWrite;
  		}
  		else
  			errorXInput = m_pidXCorrector->getDelta();
 
  	}
+ 	//Y AXIS  ---  If PID is enabled, we use the corresponding corrector to estimate error
  	if (m_yAxisData.axisInfo.PIDCoefficients.isPIDEnabled && (errorYInput != 0)){
  		//Apply new step on PID corrector
  		m_pidYCorrector->newStepValue(errorYInput, 1);//(double)loopDuration.count());
  		//In PID mode, with an integral component, PID corrector will directly send new position back 
  		if (m_yAxisData.axisInfo.PIDCoefficients.I != 0){
  			//Write new position on actuator system (instead of an error input)
- 			Tango::DeviceAttribute* positionToWrite = NULL;
- 			std::cout<<"newStepValue = >  m_pidYCorrector->getNewPosition() = "<< m_pidYCorrector->getNewPosition()<<std::endl;
-			positionToWrite = new Tango::DeviceAttribute(ATTR_Y_POSITION_STR, m_pidYCorrector->getNewPosition());
-			writeAttributeOnActuatorSystem(*positionToWrite);
- 			//Error has been take care of
+ 			double newPositionY = m_pidYCorrector->getNewPosition();
+ 			if(!m_simulatedMode){
+ 				Tango::DeviceAttribute* positionToWrite = NULL;
+				positionToWrite = new Tango::DeviceAttribute(ATTR_Y_POSITION_STR, newPositionY);
+				writeAttributeOnActuatorSystem(*positionToWrite);
+				delete positionToWrite;
+			}else{		
+				ostringstream convertYPos; 
+				convertYPos<<newPositionY;
+				std::string yPositionStr = convertYPos.str();
+				stateStatus.state = Tango::RUNNING;
+				stateStatus.status =	stateStatus.status + "\n[ABSOLUTE] Y axis should move to " + yPositionStr;
+				updateTaskStateStatus(stateStatus);
+			}
+ 			//Error has been taking care of by setting axis to a new position
  			errorYInput = 0;
- 			delete positionToWrite;
  		}
  		else
  			errorYInput = m_pidYCorrector->getDelta();
@@ -949,7 +975,7 @@ void BPTTaskManager::runBeamTracking(){
  	Tango::DeviceData pixelsDeltasToSend;
  	std::vector<double> values;
 	
- 	//Don't need to call AS if error on X and Y are null
+ 	//If PID is disabled or there is no Integral coefficient in it
  	if((errorXInput != 0) || (errorYInput != 0)){
 	 	values.push_back(errorXInput);
 	 	values.push_back(errorYInput);
@@ -962,15 +988,10 @@ void BPTTaskManager::runBeamTracking(){
 			ostringstream convertY; 
 			convertY<<errorYInput;
 			std::string errorYInputStr = convertY.str();
-			StateStatus stateStatus;
 			stateStatus.state = Tango::RUNNING;
-			stateStatus.status = "[SIMULATED MODE ACTIVE]     \
-								 \nBPT should now move axes this way : 	  \
-								   \n-> X axis should move with " + errorXInputStr + " setps \
-								   \n-> Y axis should move with " + errorYInputStr + " setps \
-								 \nWaiting for user acknowlegement ...";
+			stateStatus.status = stateStatus.status + " \n[RELATIVE] X axis should move with " + errorXInputStr + " setps \
+								   \n[RELATIVE] Y axis should move with " + errorYInputStr + " setps ";
 			updateTaskStateStatus(stateStatus);
-			waitForUserAcknowlegement();
 		}
 		// Normal mode, send values on actuator then wait for it's movement to be over		
 		else{
@@ -981,10 +1002,13 @@ void BPTTaskManager::runBeamTracking(){
 			}
 		}	
 	}
-	else if (m_simulatedMode){
-		StateStatus stateStatus;
+
+	// If simulated, wait for user clic !
+	if (m_simulatedMode){
 		stateStatus.state = Tango::RUNNING;
-		stateStatus.status = "New step in simulated mode \n-> nothing to move in this step!\nPlease check Axes Regulation Thresholds values \nWaiting for acknowlegement ...";
+		//stateStatus.status = "New step in simulated mode \n-> nothing to move in this step!\nPlease check Axes Regulation Thresholds values \nWaiting for acknowlegement ...";
+		
+		stateStatus.status = stateStatus.status + "\nWaiting for acknowlegement comand ...";
 		updateTaskStateStatus(stateStatus);
 		waitForUserAcknowlegement();
 	}

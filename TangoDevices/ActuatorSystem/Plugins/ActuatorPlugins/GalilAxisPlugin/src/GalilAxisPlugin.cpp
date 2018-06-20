@@ -93,7 +93,7 @@ double GalilAxisPlugin::getAxisCurrentPosition()throw (Tango::DevFailed)
 	//First check if connexion is still alive
 	this->updateStateStatus();
 	if (_stateStatus.isConnexionOperational){
-		Tango::DeviceAttribute positionAttr = this->_galilAxisDevice->read_attribute("position");
+		Tango::DeviceAttribute positionAttr = this->_galilAxisDevice->read_attribute(ATTR_POSITION_STR);
 		positionAttr >> positionValue;
 	}
 	
@@ -128,8 +128,6 @@ void GalilAxisPlugin::setAxisPosition(double position)throw (Tango::DevFailed){
 		_stateStatus.axisState = Tango::MOVING;
 		_stateStatus.axisStatus = "Movement is starting..";
 		positionAttribute = new Tango::DeviceAttribute(ATTR_POSITION_STR, position);
-		//For firsts tests on beamline
-		std::cout<<"Suppose to write attriute position of : "<<_deviceURLAdress<<", \nwith value : "<<position<<std::endl;
 		this->_galilAxisDevice->write_attribute(*positionAttribute);
 	}
 }
@@ -149,8 +147,6 @@ void GalilAxisPlugin::moveAxisRelative(double relativeMovement)throw (Tango::Dev
 		Tango::DeviceAttribute* positionAttribute;
 
 		positionAttribute = new Tango::DeviceAttribute(ATTR_POSITION_STR, positionToWrite);
-		//For firsts tests on beamline
-		std::cout<<"Suppose to move axis "<<_deviceURLAdress<<", with value : "<<positionToWrite<<std::endl;
 		this->_galilAxisDevice->write_attribute(*positionAttribute);
 	}
 }

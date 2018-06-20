@@ -32,7 +32,6 @@ LimaPlugin::LimaPlugin()
 	m_xCentroid = yat::ieee_nan();
 	m_yCentroid = yat::ieee_nan();
 	m_isBeamDetected = false;
-	m_isBeamInZone = false;
 	m_deviceCCDAdress = "";
 	m_deviceCCD = NULL;
 	m_percentageDetection = 1;

@@ -235,6 +235,17 @@ void CalculationProcess::calculBeam()
 		}
 	}
 
+	//If Signal-to-Noise Ratio inferior to 10, consider image as empty...
+	if (!(((newMin/newMax)*100) < 10)){
+		for (int i = 0; i < w_result.m_imgHigh; i++){
+			for (int j = 0; j < w_result.m_imgWidth; j++){
+				resultTmp_imgBin.at<uchar>(i,j) = (uchar) 0;
+			 	w_result.thresholdedImg.push_back((uchar)resultTmp_imgBin.at<uchar>(i,j));
+			}
+		}
+	}
+
+
 	// find contour
 	bool w_foundContour = false;
 	std::vector<std::vector<cv::Point> > w_contours;
@@ -281,9 +292,6 @@ void CalculationProcess::calculBeam()
 		else{
 			w_result.m_centroidCenterX = w_moments.m10 / w_moments.m00;
 			w_result.m_centroidCenterY = w_moments.m01 / w_moments.m00;
-//w_result.m_centroidCenterX = w_result.m_centroidCenterX + 0.1;
-//w_result.m_centroidCenterY = w_result.m_centroidCenterY + 0.1;
-		//	std::cout<<"w_result.m_centroidCenterX =  "<<w_result.m_centroidCenterX<<std::endl;
 		}
 	}
 

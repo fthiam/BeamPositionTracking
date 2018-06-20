@@ -73,7 +73,9 @@ namespace PIDCorrector
 	//--------------------------------------------------------
 	void PIDCorrector::newStepValue(double error, double loopTime){
 
-		_dt = loopTime;
+		//_dt = loopTime;
+		//For now - > Nanoscopium
+		_dt = 1 ;
 	    // Proportional term
 	    _Pout = _Kp * error;
 	    // Integral term
