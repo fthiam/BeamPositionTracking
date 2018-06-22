@@ -5,6 +5,7 @@ import fr.soleil.comete.box.scalarbox.BooleanScalarBox;
 import fr.soleil.comete.box.scalarbox.NumberScalarBox;
 import fr.soleil.comete.box.scalarbox.ScalarCometeBox;
 import fr.soleil.comete.box.scalarbox.StringScalarBox;
+import fr.soleil.comete.swing.Button;
 import fr.soleil.comete.swing.IconButton;
 import fr.soleil.comete.swing.ImageViewer;
 import fr.soleil.comete.swing.Label;
@@ -59,6 +60,22 @@ public class TangoConnection {
 	 *  For a WheelSwitch component
 	 * **************************************************************/
 	public void connectAttribute(String tangoDataType, String deviceAdress, String attributeName, WheelSwitch component, boolean metaData){
+		ScalarCometeBox box = getBoxWithType(tangoDataType);
+		if (box == null)
+			return;
+		TangoKey tangoKey = new TangoKey();
+		TangoKeyTool.registerAttribute(tangoKey, deviceAdress, attributeName);
+		if (metaData)
+			box.connectWidget(component, tangoKey);
+		else 
+			box.connectWidgetNoMetaData(component, tangoKey);
+	}
+	/****************************************************************
+	 *  connectAttribute
+	 *  
+	 *  For a IconButton component
+	 * **************************************************************/
+	public void connectAttribute(String tangoDataType, String deviceAdress, String attributeName, Button component, boolean metaData){
 		ScalarCometeBox box = getBoxWithType(tangoDataType);
 		if (box == null)
 			return;

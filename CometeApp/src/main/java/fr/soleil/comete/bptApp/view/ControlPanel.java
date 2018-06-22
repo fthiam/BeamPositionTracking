@@ -2,6 +2,7 @@ package fr.soleil.comete.bptApp.view;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,6 +16,7 @@ import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 
 import fr.soleil.comete.bptApp.cometeWrapper.TangoConnection;
+import fr.soleil.comete.definition.widget.util.CometeColor;
 import fr.soleil.comete.definition.widget.util.Gradient;
 import fr.soleil.comete.swing.IconButton;
 import fr.soleil.comete.swing.ImageViewer;
@@ -33,6 +35,7 @@ public class ControlPanel implements Runnable  {
     private static final String START_BEAM_TRACKING_CMD = "StartBeamTracking";
     private static final String STOP_BEAM_TRACKING_CMD = "StopBeamTracking";
     private static final String PERCENTAGE_DETECTION = "percentageDetection";
+    private static final String ORIGINAL_IMAGE = "originalImage";
     private static final String X_POSITION_ATTR = "xPosition";
     private static final String Y_POSITION_ATTR = "yPosition";
     private static final String X_AXIS_CAL_ATTR = "isXCalibrated";
@@ -54,8 +57,7 @@ public class ControlPanel implements Runnable  {
     private static final String DEVICE_LOCK_MODE_STR = "Static positionning mode!";
     private static final String DEVICE_DYN_MODE_STR = "Dynamic positionning mode!";
     private static final String IMAGE_SENSOR_TYPE = "Lima"; //TO change : plugin name 
-    
-    
+        
     String _bptDeviceAdress;
     boolean _specificPropertiesInitialized;
 	boolean _bptReadyToOperate;
@@ -88,7 +90,6 @@ public class ControlPanel implements Runnable  {
 	TextArea _bptStatus;
 	Label _asState;
 	TextArea _asStatus;
-	WheelSwitch _percentageDetection;
 	WheelSwitch _xTarget;
 	WheelSwitch _yTarget;
 	WheelSwitch _xWarnCenter;
@@ -97,6 +98,10 @@ public class ControlPanel implements Runnable  {
 	Label _xCentroid;
 	Label _yCentroid;
 	IconButton _lockModeStatus;
+	//Specific Lima plugin 
+
+	IconButton _originalImage;
+	WheelSwitch _percentageDetection;
 	//axes thresholds
 	Label _currentThresholdMode;
 	WheelSwitch _currentXThreshold;
@@ -182,13 +187,17 @@ public class ControlPanel implements Runnable  {
 	public void initSpecificProperties(){
 		//If sensor = image type
 		if(_sensorType.getText().equals(IMAGE_SENSOR_TYPE)){
+			//Threshold percentage to apply on src image
 	        _tangoConnection.connectAttribute(_tangoConnection.numberType, _bptDeviceAdress, PERCENTAGE_DETECTION, _percentageDetection, false);
 	        Label thresholdLabel = new Label();
 	        thresholdLabel.setText("- Threshold (%) :");
-	        JPanel thresholdPanel = new JPanel(new GridLayout(2, 0));
+	        JPanel thresholdPanel = new JPanel(new GridLayout(2, 1));
 	        thresholdPanel.add(thresholdLabel);
 	        thresholdPanel.setBorder(BorderFactory.createTitledBorder("IMAGE THRESHOLD" ));
 	        thresholdPanel.add(_percentageDetection);
+			//original image option button
+			_tangoConnection.connectAttribute(_tangoConnection.booleanType, _bptDeviceAdress,ORIGINAL_IMAGE ,_originalImage, false); 
+	        thresholdPanel.add(_originalImage);
 			_detectorPanel.add(thresholdPanel);
 			_specificPropertiesInitialized = true;
 		}
@@ -202,6 +211,7 @@ public class ControlPanel implements Runnable  {
 	 *  To refresh interface 
 	 * **************************************************************/
 	private void refreshInterface(){
+
 		refreshBPTState();
 		refreshApplicationCommands();
 		refreshThresholdMode();
@@ -402,6 +412,10 @@ public class ControlPanel implements Runnable  {
 					_startBTButtonCMD.doClick();
 			}
         });
+        
+
+		Font boldFontTarget = new Font("Verdana", Font.BOLD, 20);
+		Font boldFontCentroid = new Font("Verdana", Font.BOLD, 15);
 		
         _sensorType = new Label();
         //BPT State/Status
@@ -425,16 +439,29 @@ public class ControlPanel implements Runnable  {
 		_isYAxisCalibrated = new IconButton();
 		//Percentage detection
 		_percentageDetection = new WheelSwitch();
+		_originalImage = new IconButton();
+		
+		_originalImage.setTrueIconId(0);
+		_originalImage.setFalseIconId(0);
+		_originalImage.setTrueLabel("Original Image");
+		_originalImage.setFalseLabel("Thresholded Image");
 		//Beam targets
 		_xTarget = new WheelSwitch();
+		_xTarget.setFont(boldFontTarget);
 		_yTarget = new WheelSwitch();
+		_yTarget.setFont(boldFontTarget);
 		//Warning zone
 		_xWarnCenter = new WheelSwitch();
 		_yWarnCenter = new WheelSwitch();
 		_warnRadius = new WheelSwitch();
 		//Beam Centroid
 		_xCentroid = new Label();
+		_xCentroid.setFont(boldFontCentroid);
+		_xCentroid.setCometeBackground(CometeColor.CYAN);
 		_yCentroid = new Label();
+
+		_yCentroid.setCometeBackground(CometeColor.CYAN);
+		_yCentroid.setFont(boldFontCentroid);
 		//lock mode
 		_lockModeStatus = new IconButton();
 		lockStatus = new Label();
@@ -648,13 +675,11 @@ public class ControlPanel implements Runnable  {
 		xStatePanel.add(_xAxisState);
 		xStatePanel.add(_xAxisPosition);
 		//Label xUnit = new Label();
-		//xUnit.setText(_xAxisPosition.getUnit());
 		//xStatePanel.add(xUnit);
 		xStatePanel.add(_isXAxisCalibrated);
 		yStatePanel.add(_yAxisState);
 		yStatePanel.add(_yAxisPosition);
 		//Label yUnit = new Label();
-		//yUnit.setText(_yAxisPosition.getUnit());
 		//yStatePanel.add(yUnit);
 		yStatePanel.add(_isYAxisCalibrated);		
 	    Border xBrd = BorderFactory.createTitledBorder(_xAlias +" AXIS STATUS" );
