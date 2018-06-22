@@ -138,8 +138,8 @@ void BeamPositionTracking::init_device()
 	m_computedTime = 0;
 	m_taskManager = 0;
 	m_dynAttrManager = 0;
-	m_xBeamPositionInPixels = 0;
-	m_yBeamPositionInPixels = 0;
+	m_xBeamPosition = 0;
+	m_yBeamPosition = 0;
 	
 	BPTTaskManager::PIDCoefficient xAxisPID;
 	BPTTaskManager::PIDCoefficient yAxisPID;
@@ -272,7 +272,30 @@ void BeamPositionTracking::init_device()
         return;
     }
 
+
+    setCentroidsUnits(m_taskManager->i_getSensorUnit());
     m_initDone = true;
+}
+//+----------------------------------------------------------------------------
+//
+// method : 		BeamPositionTracking::setCentroidsUnits
+// 
+// description : 	To set units on x/y AxisCurrentBeamPosition attributes
+//
+//-----------------------------------------------------------------------------
+void BeamPositionTracking::setCentroidsUnits(std::string sensorUnits){
+
+	vector<string> vecCentroidsAttributes;
+	Tango::DevVarStringArray dvsa_attribute;
+    vecCentroidsAttributes.push_back("xAxisCurrentBeamPosition");
+    vecCentroidsAttributes.push_back("yAxisCurrentBeamPosition");
+	dvsa_attribute << vecCentroidsAttributes;
+	Tango::AttributeConfigList* seq_conf;
+    seq_conf = get_attribute_config(dvsa_attribute);
+
+    (*seq_conf)[0].unit = sensorUnits.c_str();
+    (*seq_conf)[1].unit = sensorUnits.c_str();
+  	set_attribute_config((*seq_conf));
 }
 
 
@@ -598,11 +621,11 @@ void BeamPositionTracking::always_executed_hook()
 			// Get task beam data 
 			BPTTaskManager::ManagerDataPacket managerDataPacket = m_taskManager->i_getManagerDataPacket();
 			// Update attributs values 
-			m_xBeamPositionInPixels = managerDataPacket.beamDiagnostic.xBeamPostionPixels;
-			m_yBeamPositionInPixels = managerDataPacket.beamDiagnostic.yBeamPostionPixels;
+			m_xBeamPosition = managerDataPacket.beamDiagnostic.xBeamPosition;
+			m_yBeamPosition = managerDataPacket.beamDiagnostic.yBeamPosition;
 			m_computedTime = managerDataPacket.computedTime;
 
-			m_imageHigh = managerDataPacket.beamDiagnostic.imgHigh;
+			m_imageHeight = managerDataPacket.beamDiagnostic.imgHeight;
 			m_imageWidth = managerDataPacket.beamDiagnostic.imgWidth;
 			m_thresholdedImage.clear();
 			m_thresholdedImage = managerDataPacket.beamDiagnostic.thresholdedImg;
@@ -667,7 +690,6 @@ void BeamPositionTracking::write_xAxisRegulationThreshold(Tango::WAttribute &att
 {
 	DEBUG_STREAM << "BeamPositionTracking::write_xAxisRegulationThreshold(Tango::WAttribute &attr) entering... "<< endl;
 
-
 	ushort tmpXAxisThreshold;
 
 	attr.get_write_value(tmpXAxisThreshold);
@@ -722,7 +744,7 @@ void BeamPositionTracking::read_thresholdedImage(Tango::Attribute &attr)
 	Tango::DevUChar* bufferAttr;
 
 	bufferAttr = &m_thresholdedImage[0];
-	attr.set_value(bufferAttr, m_imageWidth, m_imageHigh);
+	attr.set_value(bufferAttr, m_imageWidth, m_imageHeight);
 }
 
 //+----------------------------------------------------------------------------
@@ -844,7 +866,7 @@ void BeamPositionTracking::write_yAxisTarget(Tango::WAttribute &attr)
 void BeamPositionTracking::read_xAxisCurrentBeamPosition(Tango::Attribute &attr)
 {
 	DEBUG_STREAM << "BeamPositionTracking::read_xAxisCurrentBeamPosition(Tango::Attribute &attr) entering... "<< endl;
-	attr.set_value(&m_xBeamPositionInPixels);
+	attr.set_value(&m_xBeamPosition);
 }
 
 //+----------------------------------------------------------------------------
@@ -857,7 +879,7 @@ void BeamPositionTracking::read_xAxisCurrentBeamPosition(Tango::Attribute &attr)
 void BeamPositionTracking::read_yAxisCurrentBeamPosition(Tango::Attribute &attr)
 {
 	DEBUG_STREAM << "BeamPositionTracking::read_yAxisCurrentBeamPosition(Tango::Attribute &attr) entering... "<< endl;
-	attr.set_value(&m_yBeamPositionInPixels);
+	attr.set_value(&m_yBeamPosition);
 }
 
 //+----------------------------------------------------------------------------

@@ -465,6 +465,8 @@ private :
 
 	bool initFixedModeValues();
 
+	void setCentroidsUnits(std::string sensorUnits);
+
 	void setNewLabels(std::string xAlias, std::string yAlias);
 
 	void updateAttrLabel(std::string attrName, std::string label);
@@ -475,9 +477,9 @@ private :
 
 	BPTTaskManager::Target m_target;
 
-	double m_xBeamPositionInPixels;
+	double m_xBeamPosition;
 
-	double m_yBeamPositionInPixels;
+	double m_yBeamPosition;
 
 	ushort m_xAxisRegulationThreshold;
 
@@ -489,7 +491,7 @@ private :
 
 	std::vector<unsigned char> m_thresholdedImage;
 
-	int m_imageHigh;
+	int m_imageHeight;
 
 	int m_imageWidth;
 

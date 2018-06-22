@@ -32,12 +32,14 @@ class SensorInterface : public yat4tango::DevicePlugIn
 	};	
 
 	struct sensorData{
+		double xBeamPosition;
+		double yBeamPosition;
 		double xBeamPostionPixels;
 		double yBeamPostionPixels;
 		bool isBeamDetected;
 		bool isBeamInZone;
 		std::vector<unsigned char> thresholdedImg;
-		int imgHigh;
+		int imgHeight;
 		int imgWidth;
 	};	
 
@@ -46,6 +48,9 @@ class SensorInterface : public yat4tango::DevicePlugIn
 		throw (Tango::DevFailed) = 0;
 
 	virtual sensorData getSensorData()
+		throw (Tango::DevFailed) = 0;
+
+	virtual std::string getSensorUnit()
 		throw (Tango::DevFailed) = 0;
 
 	virtual sensorState getSensorState()

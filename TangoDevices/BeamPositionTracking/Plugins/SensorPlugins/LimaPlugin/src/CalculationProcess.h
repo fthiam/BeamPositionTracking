@@ -59,9 +59,13 @@ public:
 
 	void updatePercentageDetection(double newPercentageDetection);
 
+	void setOriginalImageMode(bool mode);
+
 private:
 	
 	std::string type2str(int type);
+
+	bool _originalImageMode;
 
 	bool ensureCCDDeviceIsRunnning();
 

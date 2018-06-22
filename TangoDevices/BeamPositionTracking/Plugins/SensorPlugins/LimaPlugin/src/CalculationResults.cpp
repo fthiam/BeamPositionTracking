@@ -45,6 +45,6 @@ void CalculationResults::reset()
 	m_sumTotal = 0;
 	m_largestRes.clear();
 	m_beamRectangle = cv::Rect(0,0,0,0);
-	m_imgHigh = 1024;
+	m_imgHeight = 1024;
 	m_imgWidth = 1024;
 }

@@ -28,7 +28,7 @@ namespace CalculationProcess
 CalculationProcess::CalculationProcess(Tango::DeviceProxy *deviceCCD, double percentageDetection) {
 	m_deviceCCD = deviceCCD;
 	_refCalculationResults = NULL;
-
+	_originalImageMode = false;
 	//Initialize pixel depth
 	Tango::DeviceAttribute pixelDepth = m_deviceCCD->read_attribute("detectorPixelDepth");
 	pixelDepth >> _beamInfo.settings().detectorPixelDepth;
@@ -64,6 +64,10 @@ CalculationResults CalculationProcess::processBeam(){
 	CalculationResults resultsToReturn = *_calculationResults;
 	return resultsToReturn;
 
+}
+
+void CalculationProcess::setOriginalImageMode (bool imageMode){
+	_originalImageMode = imageMode;
 }
 
 bool CalculationProcess::refreshBeam(){
@@ -225,19 +229,22 @@ void CalculationProcess::calculBeam()
 	cv::threshold( w_imgCcd8UTMP, resultTmp_imgBin, w_threshold, BINARY_TRUE_VALUE, cv::THRESH_BINARY );
 
     // Extract thresholded image into a vector
-    w_result.m_imgHigh = resultTmp_imgBin.rows;
+    w_result.m_imgHeight = resultTmp_imgBin.rows;
 	w_result.m_imgWidth = resultTmp_imgBin.cols;
 
 	w_result.thresholdedImg.clear();
-	for (int i = 0; i < w_result.m_imgHigh; i++){
+	for (int i = 0; i < w_result.m_imgHeight; i++){
 		for (int j = 0; j < w_result.m_imgWidth; j++){
-		 	w_result.thresholdedImg.push_back((uchar)resultTmp_imgBin.at<uchar>(i,j));
+			if(!_originalImageMode)
+		 		w_result.thresholdedImg.push_back((uchar)resultTmp_imgBin.at<uchar>(i,j));
+		 	else
+		 		w_result.thresholdedImg.push_back((uchar)w_imgCcd8UTMP.at<uchar>(i,j));
 		}
 	}
 
 	//If Signal-to-Noise Ratio inferior to 10, consider image as empty...
 	if (!(((newMin/newMax)*100) < 10)){
-		for (int i = 0; i < w_result.m_imgHigh; i++){
+		for (int i = 0; i < w_result.m_imgHeight; i++){
 			for (int j = 0; j < w_result.m_imgWidth; j++){
 				resultTmp_imgBin.at<uchar>(i,j) = (uchar) 0;
 			 	w_result.thresholdedImg.push_back((uchar)resultTmp_imgBin.at<uchar>(i,j));

@@ -85,7 +85,7 @@ public:
 
 	std::vector<unsigned char> thresholdedImg;
 
-	int m_imgHigh;
+	int m_imgHeight;
 
 	int m_imgWidth;
 

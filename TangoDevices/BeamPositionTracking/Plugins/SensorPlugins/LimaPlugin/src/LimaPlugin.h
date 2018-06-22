@@ -85,12 +85,18 @@ public:
 	BPT::SensorInterface::SensorInterface::sensorData getSensorData()
 		throw(Tango::DevFailed);
 
+	std::string getSensorUnit()
+		throw(Tango::DevFailed);
 	BPT::SensorInterface::SensorInterface::sensorState getSensorState()
 		throw(Tango::DevFailed);
 
 	void write_callback_percentageDetection(yat4tango::DynamicAttributeWriteCallbackData& cbd);
 
-	void read_callback_percentageDetection(yat4tango::DynamicAttributeReadCallbackData& cbd);
+	void read_callback_percentageDetection(yat4tango::DynamicAttributeReadCallbackData& cbd);	
+
+	void write_callback_originalImage(yat4tango::DynamicAttributeWriteCallbackData& cbd);
+
+	void read_callback_originalImage(yat4tango::DynamicAttributeReadCallbackData& cbd);
 		
 private:
 
@@ -135,6 +141,7 @@ private:
 	double m_percentageDetection;
 
 	bool m_fixMode;
+	bool m_originalImage;
 };
 
 

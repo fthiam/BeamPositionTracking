@@ -77,6 +77,7 @@ public:
 
 	bool sensorPluginInitialisation();
 
+	std::string i_getSensorUnit();
 
 protected:
 	//- process_message (implements yat4tango::DeviceTask pure virtual method)
@@ -148,6 +149,7 @@ private:
     Tango::DeviceImpl * m_hostDev;
     int m_taskPeriod;
 	// Sensor plugin
+	std::string m_sensorUnit;
 	yat::IPlugInInfo* m_pluginInfo;
 	yat::IPlugInFactory* m_pluginFactory;
     std::string m_pluginType;
@@ -177,7 +179,7 @@ private:
 	BPT::SensorInterface::SensorInterface::sensorState m_sensorState;
 
 
-	//FixedMode 
+	//FixedMode 	
 	FixedModeDefinition m_fixedModeDef;
 };
 } //end Namespace

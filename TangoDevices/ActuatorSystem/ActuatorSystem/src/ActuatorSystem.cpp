@@ -250,7 +250,7 @@ void ActuatorSystem::init_device()
 //
 // method : 		ActuatorSystem::setAxesUnits
 // 
-// description : 	To units on xPosition and yPosition attributes
+// description : 	To set units on xPosition and yPosition attributes
 //
 //-----------------------------------------------------------------------------
 void ActuatorSystem::setAxesUnits(ASTaskManager::AxesUnits axesUnits){

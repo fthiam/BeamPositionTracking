@@ -95,6 +95,7 @@ m_fixedModeDef(fixedMode)
 	m_sensorData.isBeamInZone = false;
 	m_isTrackingModeRunning = false;
 	m_calibrationTryCounter = 0;
+	m_sensorUnit = "";
 	m_xAxisData.axisInfo.stepNbToCalibrate = xAxisNbStepToCalibrate;
 	m_yAxisData.axisInfo.stepNbToCalibrate = yAxisNbStepToCalibrate;
 	m_xAxisData.axisInfo.PIDCoefficients = xPidCoef;
@@ -452,13 +453,14 @@ ManagerDataPacket BPTTaskManager::i_getManagerDataPacket(){
 	BeamDiagnostic beamDiagnostic;
 	//Proctect data access
 	yat::MutexLock gardDataMutex(_dataMutex);
-
+	beamDiagnostic.xBeamPosition = m_sensorData.xBeamPosition;
+	beamDiagnostic.yBeamPosition = m_sensorData.yBeamPosition;
 	beamDiagnostic.xBeamPostionPixels = m_sensorData.xBeamPostionPixels;
 	beamDiagnostic.yBeamPostionPixels = m_sensorData.yBeamPostionPixels;
 	beamDiagnostic.isBeamDetected = m_sensorData.isBeamDetected;
 	beamDiagnostic.isBeamInZone = m_sensorData.isBeamInZone;
 
-	beamDiagnostic.imgHigh = m_sensorData.imgHigh;
+	beamDiagnostic.imgHeight = m_sensorData.imgHeight;
 	beamDiagnostic.imgWidth = m_sensorData.imgWidth;
 	beamDiagnostic.thresholdedImg.clear();
 	beamDiagnostic.thresholdedImg = m_sensorData.thresholdedImg;
@@ -486,6 +488,9 @@ StateStatus BPTTaskManager::i_getStateStatus(){
 	return stateStatus;
 }
 
+std::string BPTTaskManager::i_getSensorUnit(){
+	return m_sensorUnit;
+}
 //----------------------------------------------------------------------------
 //
 //
@@ -562,7 +567,6 @@ void BPTTaskManager::refreshDataFromSensorPlugin(){
 //
 //-----------------------------------------------------------------------------
 bool BPTTaskManager::checkIfBeamIsInZone(){
-
 	double squareDistance = pow((double)m_sensorData.xBeamPostionPixels - m_warningZoneDefinition.xCenter, (double)2);
 	squareDistance += pow(((double)m_sensorData.yBeamPostionPixels - m_warningZoneDefinition.yCenter), (double)2);
 
@@ -893,8 +897,8 @@ void BPTTaskManager::runBeamTracking(){
 	int nbDataAcquired = m_sensorDataList.size();
 	//Mean of centroids
  	for (int i = 0; i < nbDataAcquired; i++){
- 		xCentroidSum += m_sensorDataList[i].xBeamPostionPixels;
- 		yCentroidSum += m_sensorDataList[i].yBeamPostionPixels;
+ 		xCentroidSum += m_sensorDataList[i].xBeamPosition;
+ 		yCentroidSum += m_sensorDataList[i].yBeamPosition;
  	}
  	meanXCentroid = xCentroidSum / nbDataAcquired;
  	meanYCentroid = yCentroidSum / nbDataAcquired;
@@ -1128,6 +1132,7 @@ void BPTTaskManager::startPlugin(){
 			m_sensorPlugin->start(m_hostDev, m_fixedModeDef.isFixedModeEnabled);
 			stateStatus.state = Tango::STANDBY;
 			stateStatus.status = "Initialisation done, ready to start ...";
+			m_sensorUnit = m_sensorPlugin->getSensorUnit();
 		}else{
 			stateStatus.state = Tango::FAULT;
 			stateStatus.status = "Couldn't start plugin : plugin not correctly initialized";
@@ -1396,14 +1401,14 @@ double BPTTaskManager::getXCentroid(){
 	yat::MutexLock gardPluginMutex(m_sensorPluginMutex);
 	BPT::SensorInterface::SensorInterface::sensorData sensorData = m_sensorPlugin->getSensorData();
 	
-	return sensorData.xBeamPostionPixels;
+	return sensorData.xBeamPosition;
 }
 
 double BPTTaskManager::getYCentroid(){
 	yat::MutexLock gardPluginMutex(m_sensorPluginMutex);
 	BPT::SensorInterface::SensorInterface::sensorData sensorData = m_sensorPlugin->getSensorData();
 	
-	return sensorData.yBeamPostionPixels;
+	return sensorData.yBeamPosition;
 }
 } // Namespace BPTTaskManager
 

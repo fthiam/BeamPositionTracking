@@ -27,12 +27,14 @@ namespace BPTTaskManager{
 	};
 
 	struct BeamDiagnostic{
+		double xBeamPosition;
+		double yBeamPosition;
 		double xBeamPostionPixels;
 		double yBeamPostionPixels;
 		bool isBeamDetected;
 		bool isBeamInZone;
 		std::vector<unsigned char> thresholdedImg;
-		int imgHigh;
+		int imgHeight;
 		int imgWidth;
 	};
 

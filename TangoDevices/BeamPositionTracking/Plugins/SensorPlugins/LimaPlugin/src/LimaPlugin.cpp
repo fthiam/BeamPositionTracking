@@ -15,6 +15,9 @@ namespace LimaPlugin
 std::string LIMA_DEVICE_ADRESS_STR = "LimaDeviceUrl";
 std::string FIXED_PERCENTAGE_DETECTION_STR = "FixedPercentageDetection";
 const static string percentageDetectionStr = "percentageDetection";
+const static string originalImageStr = "originalImage";
+
+std::string SENSOR_UNIT = "Pixels";
 // ============================================================================
 // LimaPlugin::LimaPlugin
 // ============================================================================
@@ -36,6 +39,7 @@ LimaPlugin::LimaPlugin()
 	m_deviceCCD = NULL;
 	m_percentageDetection = 1;
 	m_fixMode = true;
+	m_originalImage = false;
 }
 
 // ============================================================================
@@ -168,34 +172,75 @@ void LimaPlugin::enumerate_attributes (yat4tango::DynamicAttributeDescriptionLis
 throw (Tango::DevFailed)
 {
 	//- attribute definition:
-	yat4tango::DynamicAttributeInfo dai;
-	// dai.dev = this;
-
-	dai.tai.name = percentageDetectionStr;
-	dai.tai.label = percentageDetectionStr; 
-	dai.tai.data_format = Tango::SCALAR;
-	dai.tai.data_type = Tango::DEV_DOUBLE;
-	dai.tai.disp_level = Tango::OPERATOR;
-	dai.tai.writable = Tango::READ_WRITE;
-	dai.tai.description = "Image threshold lvl";
+	yat4tango::DynamicAttributeInfo percentageDetectionAttInfo;
+	// percentageDetectionAttInfo.dev = this;
+	percentageDetectionAttInfo.tai.name = percentageDetectionStr;
+	percentageDetectionAttInfo.tai.label = percentageDetectionStr; 
+	percentageDetectionAttInfo.tai.data_format = Tango::SCALAR;
+	percentageDetectionAttInfo.tai.data_type = Tango::DEV_DOUBLE;
+	percentageDetectionAttInfo.tai.disp_level = Tango::OPERATOR;
+	percentageDetectionAttInfo.tai.writable = Tango::READ_WRITE;
+	percentageDetectionAttInfo.tai.description = "Image threshold lvl";
 
 	//- attribute properties:
-	dai.tai.unit = " ";
-	dai.tai.standard_unit = " ";
-	dai.tai.display_unit = " ";
-	dai.tai.format = "%6.2f";
-
-	dai.cdb = true;
+	percentageDetectionAttInfo.tai.unit = " ";
+	percentageDetectionAttInfo.tai.standard_unit = " ";
+	percentageDetectionAttInfo.tai.display_unit = " ";
+	percentageDetectionAttInfo.tai.format = "%6.2f";
+	percentageDetectionAttInfo.cdb = true;
 
 	//- read callback
-	dai.rcb = yat4tango::DynamicAttributeReadCallback::instanciate(const_cast<LimaPlugin&>(*this), 
+	percentageDetectionAttInfo.rcb = yat4tango::DynamicAttributeReadCallback::instanciate(const_cast<LimaPlugin&>(*this), 
 	                                                          &LimaPlugin::read_callback_percentageDetection);
-
-	dai.wcb = yat4tango::DynamicAttributeWriteCallback::instanciate(const_cast<LimaPlugin&>(*this),
+	percentageDetectionAttInfo.wcb = yat4tango::DynamicAttributeWriteCallback::instanciate(const_cast<LimaPlugin&>(*this),
 	                                                            &LimaPlugin::write_callback_percentageDetection);
+	//- attribute definition:
+	yat4tango::DynamicAttributeInfo originalImageAttInfo;
+	// dai.dev = this;
+	originalImageAttInfo.tai.name = originalImageStr;
+	originalImageAttInfo.tai.label = originalImageStr; 
+	originalImageAttInfo.tai.data_format = Tango::SCALAR;
+	originalImageAttInfo.tai.data_type = Tango::DEV_BOOLEAN;
+	originalImageAttInfo.tai.disp_level = Tango::OPERATOR;
+	originalImageAttInfo.tai.writable = Tango::READ_WRITE;
+	originalImageAttInfo.tai.description = "If true : srcImage will be an exact copy of lima device's image\
+											If false : scrImage will be the result of the threshold (image binarisation...)";
 
+	//- attribute properties:
+	originalImageAttInfo.tai.unit = " ";
+	originalImageAttInfo.tai.standard_unit = " ";
+	originalImageAttInfo.tai.display_unit = " ";
+	originalImageAttInfo.tai.format = "";
+	originalImageAttInfo.cdb = true;
+
+	//- read callback
+	originalImageAttInfo.rcb = yat4tango::DynamicAttributeReadCallback::instanciate(const_cast<LimaPlugin&>(*this), 
+	                                                          &LimaPlugin::read_callback_originalImage);
+	originalImageAttInfo.wcb = yat4tango::DynamicAttributeWriteCallback::instanciate(const_cast<LimaPlugin&>(*this),
+	                                                            &LimaPlugin::write_callback_originalImage);
 	//- add attribute description in list
-	attrDescList.push_back(dai);
+	attrDescList.push_back(originalImageAttInfo);
+	//- add attribute percentageDetection in list
+	attrDescList.push_back(percentageDetectionAttInfo);
+
+}
+// ============================================================================
+// LimaPlugin::write_callback_originalImage
+// ============================================================================
+void LimaPlugin::write_callback_originalImage(yat4tango::DynamicAttributeWriteCallbackData& cbd)
+{
+    cbd.tga->get_write_value(m_originalImage);
+    m_calculationProcess->setOriginalImageMode(m_originalImage);
+}
+// ============================================================================
+// LimaPlugin::read_callback_originalImage
+// ============================================================================
+void LimaPlugin::read_callback_originalImage(yat4tango::DynamicAttributeReadCallbackData& cbd)
+{
+	if (this->m_percentageDetectionPresent)
+		cbd.tga->set_value(&m_originalImage);
+	else
+		cbd.tga->set_quality(Tango::AttrQuality::ATTR_INVALID, true);
 }
 // ============================================================================
 // LimaPlugin::write_callback_externalThreshold
@@ -238,7 +283,10 @@ BPT::SensorInterface::SensorInterface::sensorData LimaPlugin::getSensorData()
 				if(results.m_beamShapefound){
 					dataToReturn.xBeamPostionPixels = results.m_centroidCenterX;
 					dataToReturn.yBeamPostionPixels = results.m_centroidCenterY;
-					dataToReturn.imgHigh = results.m_imgHigh;
+					//same thing in this case...
+					dataToReturn.xBeamPosition = results.m_centroidCenterX;
+					dataToReturn.yBeamPosition = results.m_centroidCenterY;
+					dataToReturn.imgHeight = results.m_imgHeight;
 					dataToReturn.imgWidth = results.m_imgWidth;
 					dataToReturn.thresholdedImg.clear();
 					dataToReturn.thresholdedImg = results.thresholdedImg;
@@ -247,7 +295,7 @@ BPT::SensorInterface::SensorInterface::sensorData LimaPlugin::getSensorData()
 				}	
 				else{
 					//Only use image ...
-					dataToReturn.imgHigh = results.m_imgHigh;
+					dataToReturn.imgHeight = results.m_imgHeight;
 					dataToReturn.imgWidth = results.m_imgWidth;
 					dataToReturn.thresholdedImg.clear();
 					dataToReturn.thresholdedImg = results.thresholdedImg;
@@ -300,8 +348,6 @@ void LimaPlugin::start(Tango::DeviceImpl * host_device, bool fixMode)
 				m_calculationProcess = new CalculationProcess::CalculationProcess ( m_deviceCCD, m_percentageDetection);
 				if(m_calculationProcess->checkDetectorPixelDepth()){
 					//If fixed mode -> set threshold once and for all
-					std::cout<<"start, with m_percentageDetection = "<<m_percentageDetection<<std::endl;
-					//Init percentage detection with property value 
 					setPercentageDetection(m_percentageDetection);
 					m_sensorState.operational = true;
 					m_sensorState.errorStatus = "Idle ready to start processing";
@@ -328,7 +374,6 @@ void LimaPlugin::initialize_connection ()
 	try{
 		//Init CCD device proxy
 		m_deviceCCD = new Tango::DeviceProxy (m_deviceCCDAdress);
-
 		Tango::DeviceData test  = m_deviceCCD->command_inout("Status");
 		percentageDetection_attribute_present();
 		std::string statusOut;
@@ -365,5 +410,13 @@ void LimaPlugin::setPercentageDetection(double percentageDetection){
         _CPTC("Invalid value for percentage detection, \nmust be between 0 - 100 !"),
         _CPTC("LimaPlugin::write_callback_percentageDetection()")); 
 	}
+}
+
+// ============================================================================
+// LimaPlugin::getSensorUnit
+// ============================================================================
+std::string LimaPlugin::getSensorUnit()
+  throw (Tango::DevFailed){
+	return SENSOR_UNIT;
 }
 }//namespace LimaPlugin

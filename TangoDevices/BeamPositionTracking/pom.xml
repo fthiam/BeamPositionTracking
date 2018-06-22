@@ -61,7 +61,7 @@
 		<module>Plugins/PluginInterfaces</module>	
 		<module>BeamPositionTracking</module>
 		<module>Plugins/SensorPlugins/LimaPlugin</module>
-		<!--module>Plugins/SensorPlugins/XBPMPlugin</module-->
+		<module>Plugins/SensorPlugins/XBPMPlugin</module>
 	</modules>
             
 </project>
