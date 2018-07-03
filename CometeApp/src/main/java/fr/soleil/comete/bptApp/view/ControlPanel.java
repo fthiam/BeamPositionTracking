@@ -113,7 +113,8 @@ public class ControlPanel implements Runnable  {
 	boolean _coldBeamLineMode;
 	boolean _hotBeamLineMode;
 	StringButton _switchBeamLineThresholdMode;
-	
+
+    String _currentImageMode;
 	Label lockStatus;
 	boolean _lockMode;
 	TangoConnection _tangoConnection = new TangoConnection();
@@ -139,7 +140,7 @@ public class ControlPanel implements Runnable  {
 		_xOldFrameDim = 0;
 		_yOldFrameDim = 0;
 		_configPanel.hideConfigPanel();
-	
+		_currentImageMode = "Thresholded Image";
         initComponents();
         initTangoConnexions(bptDeviceAdress, asDeviceAdress); 
 		initGui();
@@ -220,6 +221,30 @@ public class ControlPanel implements Runnable  {
 		if (!_lockMode)
 			getNewSelectedTargetOnImage();
 		updateTargetDraw();
+		updateImageGradient();
+	}
+	/****************************************************************
+	 *  updateImageGradient ()
+	 *  
+	 *  Depends on which image we're using : Original or thresholded
+	 * **************************************************************/
+	private void updateImageGradient(){
+		String previousImageMode = _currentImageMode;
+		_currentImageMode = _originalImage.getText();
+		if (!previousImageMode.equals(_currentImageMode)){
+			if (_originalImage.getText().equals("Original Image")){
+				Gradient gradient = new Gradient();
+		        gradient.buildRainbowGradient();
+		        _viewer.setGradient(gradient);
+		        _viewer.setBeamColor(Color.BLACK);
+			}
+			else{
+				Gradient gradient = new Gradient();
+		        gradient.buildMonochromeGradient();
+		        _viewer.setGradient(gradient);
+		        _viewer.setBeamColor(Color.RED);
+			}
+		}		
 	}
 	/****************************************************************
 	 *  refreshThresholdMode ()
@@ -297,6 +322,7 @@ public class ControlPanel implements Runnable  {
 		_viewer.setBeamPoint(point);
 		_viewer.getBeamPoint();
 		_viewer.setDrawBeamPosition(true);
+
 	}
 	/****************************************************************
 	 *  refreshBPTState ()

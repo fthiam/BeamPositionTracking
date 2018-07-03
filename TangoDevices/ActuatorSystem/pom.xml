@@ -16,13 +16,12 @@
 	<name>ActuatorSystem project</name>
 	<description>ActuatorSystem project</description>
    
-    <!--scm>
-        <connection>${scm.connection.cvs.soleil}:DeviceServer/Specific/Machine/Alim/ActuatorSystem</connection>
-        <developerConnection>${scm.developerConnection.cvs.soleil}:DeviceServer/Specific/Machine/Alim/ActuatorSystem</developerConnection>
-        <url>${scm.url.cvs.soleil}/DeviceServer/Specific/Machine/Alim/ActuatorSystem</url>
-    </scm-->
-   
-   
+    <scm>
+        <connection>scm:git:git://github.com/fthiam/BeamPositionTracking/TangoDevices/ActuatorSystem.git</connection>
+        <developerConnection>scm:git:git://github.com/fthiam/BeamPositionTracking/TangoDevices/ActuatorSystem.git</developerConnection>
+        <url>https://github.com/fthiam/BeamPositionTracking/TangoDevices/ActuatorSystem</url>
+    </scm>
+    
 	<developers>
 		<developer>
 			<id>thiam</id>
